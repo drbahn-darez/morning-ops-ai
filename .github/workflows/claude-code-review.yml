@@ -1,0 +1,28 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            이 PR을 리뷰해줘. 다음 항목을 중심으로 살펴보고 리뷰 코멘트를 남겨줘:
+            - 로직 오류와 버그
+            - 보안 문제 (비밀값 노출, 입력 검증 등)
+            - CLAUDE.md의 프로젝트 규칙 위반
+            - 테스트 누락
+            문제가 없으면 간단히 승인 의견만 남겨.
+          claude_args: "--max-turns 10"
