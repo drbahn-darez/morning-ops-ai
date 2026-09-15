@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EGA 캐시플로우</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    color-scheme: light;
+    --ground:#f4f6f3;
+    --surface:#ffffff;
+    --surface-2:#eef1ec;
+    --ink:#141d19;
+    --ink-2:#55605a;
+    --ink-3:#8a938d;
+    --line:#dfe4de;
+    --line-2:#c9d0c8;
+    --accent:#0e7c5b;
+    --accent-ink:#0a5f46;
+    --accent-wash:rgba(14,124,91,.10);
+    --s-rev:#2a78d6;   /* 실매출 */
+    --s-ad:#eb6834;    /* 광고비 */
+    --s-fix:#4a3aa7;   /* 고정비 */
+    --s-oth:#eda100;   /* 기타 지출 */
+    --good:#0ca30c; --good-ink:#006300;
+    --bad:#d03b3b;  --bad-ink:#b02a2a;
+    --warn:#fab219;
+    --grid:#e1e0d9;
+    --shadow:0 1px 2px rgba(20,29,25,.06), 0 8px 24px -12px rgba(20,29,25,.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --ground:#0f1412; --surface:#171d1a; --surface-2:#1f2622;
+      --ink:#f2f4f1; --ink-2:#b9c2bc; --ink-3:#7f8983;
+      --line:#2a332e; --line-2:#3a453f;
+      --accent:#37b58f; --accent-ink:#5ccaa7; --accent-wash:rgba(55,181,143,.14);
+      --s-rev:#3987e5; --s-ad:#d95926; --s-fix:#9085e9; --s-oth:#c98500;
+      --good:#0ca30c; --good-ink:#3fc23f; --bad:#e66767; --bad-ink:#f08a8a;
+      --grid:#2c2c2a;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --ground:#0f1412; --surface:#171d1a; --surface-2:#1f2622;
+    --ink:#f2f4f1; --ink-2:#b9c2bc; --ink-3:#7f8983;
+    --line:#2a332e; --line-2:#3a453f;
+    --accent:#37b58f; --accent-ink:#5ccaa7; --accent-wash:rgba(55,181,143,.14);
+    --s-rev:#3987e5; --s-ad:#d95926; --s-fix:#9085e9; --s-oth:#c98500;
+    --good:#0ca30c; --good-ink:#3fc23f; --bad:#e66767; --bad-ink:#f08a8a;
+    --grid:#2c2c2a;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--ground); color:var(--ink);
+    font-family:"IBM Plex Sans KR", system-ui, -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    font-size:14px; line-height:1.5;
+    padding-inline:clamp(16px, 3vw, 40px); padding-block:20px 56px;
+  }
+  h1,h2,h3{margin:0; text-wrap:balance; font-weight:600}
+  h1{font-size:20px; letter-spacing:-.01em}
+  h2{font-size:15px}
+  .eyebrow{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-3); font-weight:600}
+  .muted{color:var(--ink-2)}
+  .tiny{font-size:12px; color:var(--ink-3)}
+  .num{font-variant-numeric:tabular-nums}
+  button,input,select,textarea{font:inherit; color:inherit}
+  button{cursor:pointer}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  a{color:var(--accent-ink)}
+
+  .wrap{max-width:1240px; margin:0 auto; display:grid; gap:20px}
+
+  /* header */
+  .top{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:12px 24px}
+  .top .title{display:grid; gap:2px}
+  .controls{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+  .seg{display:inline-flex; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:3px; gap:2px}
+  .seg button{border:0; background:transparent; padding:6px 10px; border-radius:6px; font-size:13px; color:var(--ink-2)}
+  .seg button[aria-pressed="true"]{background:var(--ink); color:var(--surface); font-weight:600}
+  .field{display:inline-flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:4px 8px 4px 10px; font-size:13px; color:var(--ink-2)}
+  .field input{border:0; background:transparent; width:9em; text-align:right; padding:3px 2px; font-variant-numeric:tabular-nums; color:var(--ink)}
+  .field input[type="date"]{width:auto; text-align:left}
+  .field input:focus{outline:none}
+  .btn{border:1px solid var(--line-2); background:var(--surface); border-radius:8px; padding:6px 12px; font-size:13px; color:var(--ink)}
+  .btn:hover{background:var(--surface-2)}
+  .btn.primary{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600}
+  .btn.ghost{border-color:transparent; background:transparent; color:var(--ink-2)}
+  .btn.danger{color:var(--bad-ink)}
+
+  /* hero */
+  .hero{display:grid; grid-template-columns:minmax(260px,1fr) minmax(0,1.6fr); gap:20px; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:22px 24px; box-shadow:var(--shadow)}
+  .hero-fig{display:grid; align-content:start; gap:10px}
+  .hero-fig .value{font-size:clamp(34px,5vw,52px); font-weight:700; letter-spacing:-.02em; line-height:1.05}
+  .hero-fig .value.neg{color:var(--bad-ink)}
+  .hero-fig .value.pos{color:var(--accent-ink)}
+  .kv{display:grid; grid-template-columns:auto 1fr; gap:4px 14px; font-size:13px; margin-top:6px}
+  .kv dt{color:var(--ink-2); margin:0}
+  .kv dd{margin:0; text-align:right; font-variant-numeric:tabular-nums}
+  .kv dd.strong{font-weight:600}
+  .chip{display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:999px; font-size:12px; font-weight:600; background:var(--surface-2); color:var(--ink-2)}
+  .chip.good{background:rgba(12,163,12,.12); color:var(--good-ink)}
+  .chip.bad{background:rgba(208,59,59,.12); color:var(--bad-ink)}
+  .chip.warn{background:rgba(250,178,25,.16); color:#7a5300}
+  :root[data-theme="dark"] .chip.warn{color:#f6cf6a}
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .chip.warn{color:#f6cf6a} }
+
+  /* ladder */
+  .ladder{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px}
+  .step{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px 18px; display:grid; gap:10px; position:relative}
+  .step .head{display:flex; justify-content:space-between; align-items:baseline; gap:8px}
+  .step .big{font-size:26px; font-weight:700; letter-spacing:-.01em; line-height:1.1}
+  .step .big.neg{color:var(--bad-ink)}
+  .step .rows{display:grid; gap:4px; font-size:13px; border-top:1px solid var(--line); padding-top:10px}
+  .step .rows div{display:flex; justify-content:space-between; gap:12px}
+  .step .rows .v{font-variant-numeric:tabular-nums; white-space:nowrap}
+  .step .rows .out{color:var(--ink-2)}
+  .step .rows .sum{font-weight:600; border-top:1px dashed var(--line-2); padding-top:6px; margin-top:2px}
+  .stripe{position:absolute; left:0; top:14px; bottom:14px; width:3px; border-radius:0 3px 3px 0}
+  .stripe.rev{background:var(--s-rev)} .stripe.ad{background:var(--s-ad)} .stripe.fix{background:var(--s-fix)}
+  .sw{display:inline-block; width:10px; height:10px; border-radius:2px; vertical-align:-1px; margin-right:6px}
+
+  /* panels */
+  .grid2{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.5fr); gap:20px}
+  .panel{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px 18px; display:grid; gap:12px; align-content:start; min-width:0}
+  .panel .head{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap}
+  .tools{display:flex; gap:6px; flex-wrap:wrap}
+  .tblwrap{overflow-x:auto; -webkit-overflow-scrolling:touch}
+  table{border-collapse:collapse; width:100%; font-size:13px}
+  th,td{padding:7px 6px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap}
+  th{color:var(--ink-3); font-weight:500; font-size:12px; position:sticky; top:0; background:var(--surface)}
+  th:first-child,td:first-child{text-align:left}
+  td input{width:100%; min-width:5.5em; border:1px solid transparent; background:transparent; padding:4px 6px; border-radius:6px; text-align:right; font-variant-numeric:tabular-nums}
+  td input.txt{text-align:left}
+  td input:hover{border-color:var(--line)}
+  td input:focus{border-color:var(--accent); outline:none; background:var(--surface-2)}
+  td .calc{color:var(--ink-2); font-variant-numeric:tabular-nums}
+  td .calc.neg{color:var(--bad-ink)}
+  tfoot td{font-weight:600; border-top:2px solid var(--line-2); border-bottom:0}
+  .rowdel{border:0; background:transparent; color:var(--ink-3); padding:2px 6px; border-radius:6px; font-size:16px; line-height:1}
+  .rowdel:hover{color:var(--bad-ink); background:var(--surface-2)}
+  .scroll{max-height:440px; overflow:auto}
+  .empty{padding:24px; text-align:center; color:var(--ink-3)}
+
+  /* charts */
+  .chart{width:100%; height:auto; display:block}
+  .chart text{font-family:inherit; font-size:11px; fill:var(--ink-3)}
+  .chart .lbl{fill:var(--ink); font-weight:600}
+  .chart .lbl2{fill:var(--ink-2)}
+  .chart .grid{stroke:var(--grid); stroke-width:1}
+  .chart .base{stroke:var(--line-2); stroke-width:1}
+  .legend{display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:var(--ink-2)}
+  .legend span{display:inline-flex; align-items:center; gap:6px}
+  .legend i{width:14px; height:2px; background:currentColor; display:inline-block; border-radius:1px}
+  .tip{position:fixed; z-index:9; pointer-events:none; background:var(--ink); color:var(--surface); padding:8px 10px; border-radius:8px; font-size:12px; line-height:1.4; box-shadow:var(--shadow); display:none; max-width:260px}
+  .tip b{display:block; font-weight:600; margin-bottom:2px}
+  .tip .r{display:flex; justify-content:space-between; gap:14px; font-variant-numeric:tabular-nums}
+
+  /* note */
+  .note{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px}
+  .note .card{background:var(--surface-2); border-radius:10px; padding:14px 16px; display:grid; gap:6px; font-size:13px}
+  .note .card .v{font-size:20px; font-weight:600; font-variant-numeric:tabular-nums}
+
+  /* modal */
+  dialog{border:1px solid var(--line); border-radius:12px; background:var(--surface); color:var(--ink); padding:20px; width:min(560px, calc(100vw - 32px)); box-shadow:var(--shadow)}
+  dialog::backdrop{background:rgba(0,0,0,.35)}
+  dialog textarea{width:100%; min-height:180px; border:1px solid var(--line-2); border-radius:8px; padding:10px; background:var(--surface-2); font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px; resize:vertical}
+  .modal-foot{display:flex; justify-content:flex-end; gap:8px; margin-top:12px}
+  .toast{position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); background:var(--ink); color:var(--surface); padding:8px 14px; border-radius:999px; font-size:13px; opacity:0; transition:opacity .2s; pointer-events:none}
+  .toast.show{opacity:1}
+
+  @media (max-width:900px){
+    .hero{grid-template-columns:1fr}
+    .ladder{grid-template-columns:1fr}
+    .grid2{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="title">
+      <span class="eyebrow">EGA · Cash view</span>
+      <h1>캐시플로우</h1>
+      <span class="tiny">부가세 제외 실매출 → 광고비 차감 → 고정비 차감. 매출원가는 이미 지불된 돈이라 빼지 않습니다.</span>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="기간" id="periodSeg">
+        <button type="button" data-p="mtd" aria-pressed="true">이번 달</button>
+        <button type="button" data-p="last7">최근 7일</button>
+        <button type="button" data-p="last30">최근 30일</button>
+        <button type="button" data-p="prevm">지난 달</button>
+        <button type="button" data-p="all">전체</button>
+      </div>
+      <label class="field">기초 현금 <input id="openingCash" type="text" inputmode="numeric" placeholder="0"> 원</label>
+      <label class="field">부가세 <input id="vatRate" type="number" min="0" max="30" step="0.5" style="width:4em"> %</label>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero" aria-label="요약">
+    <div class="hero-fig">
+      <span class="eyebrow" id="heroPeriod">이번 달 (9/1 – 9/15)</span>
+      <div>
+        <div class="tiny">고정비까지 뺀 뒤 남는 현금 (순현금흐름)</div>
+        <div class="value num" id="heroNet">₩0</div>
+      </div>
+      <div id="heroChips" style="display:flex; gap:6px; flex-wrap:wrap"></div>
+      <dl class="kv">
+        <dt>기초 현금</dt><dd id="kOpening">₩0</dd>
+        <dt>+ 순현금흐름</dt><dd id="kNet">₩0</dd>
+        <dt>= 기말 예상 현금</dt><dd class="strong" id="kClosing">₩0</dd>
+        <dt>부가세 예수금 (별도 보관)</dt><dd id="kVat" class="muted">₩0</dd>
+      </dl>
+    </div>
+    <div>
+      <div class="head" style="display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap">
+        <h2>현금이 어디로 빠지는가</h2>
+        <span class="tiny">기간 합계 · 워터폴</span>
+      </div>
+      <svg id="waterfall" class="chart" viewBox="0 0 640 260" role="img" aria-label="실매출에서 광고비, 고정비, 기타 지출을 차감해 순현금에 이르는 워터폴 차트"></svg>
+    </div>
+  </section>
+
+  <!-- LADDER -->
+  <section class="ladder" aria-label="계산 단계">
+    <div class="step"><i class="stripe rev"></i>
+      <div class="head"><span class="eyebrow">1단계 · 들어온 돈</span><span class="tiny">부가세 제외</span></div>
+      <div class="big num" id="s1Net">₩0</div>
+      <div class="rows">
+        <div><span>총매출 (부가세 포함)</span><span class="v" id="s1Gross">₩0</span></div>
+        <div class="out"><span>− 부가세 예수금</span><span class="v" id="s1Vat">₩0</span></div>
+        <div class="sum"><span>= 실매출</span><span class="v" id="s1Net2">₩0</span></div>
+      </div>
+      <div class="tiny">매출원가는 이미 결제된 재고 비용이므로 여기서 빼지 않습니다.</div>
+    </div>
+    <div class="step"><i class="stripe ad"></i>
+      <div class="head"><span class="eyebrow">2단계 · 광고비 차감</span><span class="tiny">매일 실제 지출</span></div>
+      <div class="big num" id="s2After">₩0</div>
+      <div class="rows">
+        <div><span>실매출</span><span class="v" id="s2Net">₩0</span></div>
+        <div class="out"><span>− 광고비</span><span class="v" id="s2Ad">₩0</span></div>
+        <div class="sum"><span>= 광고비 차감 후 현금</span><span class="v" id="s2After2">₩0</span></div>
+      </div>
+      <div class="tiny"><span id="s2Ratio">광고비 / 실매출 0%</span> · <span id="s2Roas">ROAS 0.0x</span></div>
+    </div>
+    <div class="step"><i class="stripe fix"></i>
+      <div class="head"><span class="eyebrow">3단계 · 고정비 차감</span><span class="tiny" id="s3Basis">월 고정비 일할 안분</span></div>
+      <div class="big num" id="s3Net">₩0</div>
+      <div class="rows">
+        <div><span>광고비 차감 후 현금</span><span class="v" id="s3After">₩0</span></div>
+        <div class="out"><span>− 고정비 (기간 안분)</span><span class="v" id="s3Fix">₩0</span></div>
+        <div class="out"><span>− 기타 지출</span><span class="v" id="s3Oth">₩0</span></div>
+        <div class="sum"><span>= 순현금흐름</span><span class="v" id="s3Net2">₩0</span></div>
+      </div>
+      <div class="tiny" id="s3Runway"></div>
+    </div>
+  </section>
+
+  <!-- TREND -->
+  <section class="panel" aria-label="누적 추이">
+    <div class="head">
+      <h2>누적 현금 추이</h2>
+      <div class="legend" aria-hidden="true">
+        <span style="color:var(--s-ad)"><i></i><span style="color:var(--ink-2)">광고비 차감 후 누적</span></span>
+        <span style="color:var(--accent)"><i></i><span style="color:var(--ink-2)">고정비까지 차감한 누적 (순현금)</span></span>
+      </div>
+    </div>
+    <svg id="trend" class="chart" viewBox="0 0 1100 260" role="img" aria-label="기간 내 일별 누적 현금 추이"></svg>
+  </section>
+
+  <div class="grid2">
+    <!-- FIXED COSTS -->
+    <section class="panel" aria-label="월 고정비">
+      <div class="head">
+        <div><h2>월 고정비</h2><span class="tiny">매월 정액으로 나가는 돈. 기간 계산 시 일할로 안분됩니다.</span></div>
+        <div class="tools"><button type="button" class="btn" id="addFixed">+ 항목</button></div>
+      </div>
+      <div class="tblwrap">
+        <table id="fixedTbl">
+          <thead><tr><th>항목</th><th>월 금액 (원)</th><th></th></tr></thead>
+          <tbody></tbody>
+          <tfoot><tr><td>월 합계</td><td class="num" id="fixedTotal">₩0</td><td></td></tr></tfoot>
+        </table>
+      </div>
+      <div class="tiny">일 환산 <b class="num" id="fixedPerDay">₩0</b> · 하루 광고비 차감 후 현금이 이 금액을 넘어야 그날은 플러스입니다.</div>
+    </section>
+
+    <!-- DAILY -->
+    <section class="panel" aria-label="일별 입력">
+      <div class="head">
+        <div><h2>일별 입력</h2><span class="tiny">총매출은 부가세 포함 금액. 광고비는 그날 실제 집행액.</span></div>
+        <div class="tools">
+          <button type="button" class="btn" id="addDay">+ 오늘</button>
+          <button type="button" class="btn" id="importBtn">붙여넣기 (CSV)</button>
+          <button type="button" class="btn ghost" id="exportBtn">JSON 복사</button>
+          <button type="button" class="btn ghost danger" id="clearBtn">비우기</button>
+        </div>
+      </div>
+      <div class="tblwrap scroll">
+        <table id="dailyTbl">
+          <thead><tr>
+            <th>날짜</th><th>총매출</th><th>실매출</th><th>광고비</th><th>광고비 차감 후</th><th>기타 지출</th><th>순현금 (일)</th><th>메모</th><th></th>
+          </tr></thead>
+          <tbody></tbody>
+          <tfoot><tr><td>기간 합계</td><td id="fGross"></td><td id="fNet"></td><td id="fAd"></td><td id="fAfter"></td><td id="fOth"></td><td id="fDaily"></td><td></td><td></td></tr></tfoot>
+        </table>
+      </div>
+      <div class="tiny" id="sampleNote"></div>
+    </section>
+  </div>
+
+  <!-- REFERENCE -->
+  <section class="panel" aria-label="참고 지표">
+    <div class="head">
+      <div><h2>참고: 회계상 매출이익</h2><span class="tiny">현금흐름에는 반영하지 않습니다. 원가율만 넣어두면 회계 관점의 이익을 옆에서 봅니다.</span></div>
+      <label class="field">원가율 <input id="cogsRate" type="number" min="0" max="100" step="1" style="width:4em"> %</label>
+    </div>
+    <div class="note">
+      <div class="card"><span class="muted">매출원가 (실매출 × 원가율)</span><span class="v" id="rCogs">₩0</span></div>
+      <div class="card"><span class="muted">매출이익 (실매출 − 원가)</span><span class="v" id="rGp">₩0</span></div>
+      <div class="card"><span class="muted">광고비 차감 후 이익 (회계)</span><span class="v" id="rGpAd">₩0</span></div>
+      <div class="card"><span class="muted">현금 vs 회계 차이 (원가만큼)</span><span class="v" id="rDiff">₩0</span><span class="tiny">이미 나간 원가만큼 현금이 회계 이익보다 많아 보입니다. 다음 재고 매입 때 다시 나갑니다.</span></div>
+    </div>
+  </section>
+
+  <footer class="tiny">데이터는 이 브라우저에만 저장됩니다(localStorage). 다른 기기에서 보려면 “JSON 복사”로 옮기세요.</footer>
+</div>
+
+<dialog id="importDlg">
+  <h2>일별 데이터 붙여넣기</h2>
+  <p class="tiny" style="margin:6px 0 10px">한 줄에 하루. 형식: <code>날짜, 총매출, 광고비, 기타지출(선택), 메모(선택)</code><br>예: <code>2026-09-15, 4,850,000, 1,120,000</code> — 같은 날짜는 덮어씁니다. 엑셀에서 복사한 탭 구분도 됩니다.</p>
+  <textarea id="importText" placeholder="2026-09-15	4850000	1120000"></textarea>
+  <div class="modal-foot">
+    <button type="button" class="btn" id="importCancel">취소</button>
+    <button type="button" class="btn primary" id="importOk">가져오기</button>
+  </div>
+</dialog>
+
+<div class="tip" id="tip"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  'use strict';
+  const KEY = 'ega-cashflow-v1';
+  const $ = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+
+  // ---------- state ----------
+  const todayISO = () => { const d=new Date(); return [d.getFullYear(), String(d.getMonth()+1).padStart(2,'0'), String(d.getDate()).padStart(2,'0')].join('-'); };
+  const parseISO = s => { const [y,m,d]=s.split('-').map(Number); return new Date(y, m-1, d); };
+  const iso = d => [d.getFullYear(), String(d.getMonth()+1).padStart(2,'0'), String(d.getDate()).padStart(2,'0')].join('-');
+  const addDays = (d,n) => { const x=new Date(d); x.setDate(x.getDate()+n); return x; };
+  const daysInMonth = (y,m) => new Date(y, m+1, 0).getDate();
+
+  function sampleState(){
+    // 예시 데이터: 이번 달 1일부터 어제까지, 실제 수치가 아님
+    const t = parseISO(todayISO());
+    const rows = [];
+    const seed = [[4850000,1120000],[5210000,1180000],[3960000,1050000],[6120000,1390000],[5480000,1210000],[4310000,980000],[3720000,910000],
+                  [5030000,1140000],[5660000,1260000],[4470000,1090000],[6580000,1450000],[5920000,1310000],[4180000,1020000],[3890000,950000],
+                  [5250000,1170000],[5710000,1240000],[4620000,1080000],[6030000,1370000],[5390000,1200000],[4150000,990000],[3810000,930000],
+                  [5120000,1150000],[5840000,1280000],[4530000,1100000],[6260000,1420000],[5570000,1230000],[4270000,1010000],[3940000,960000],
+                  [5310000,1190000],[5780000,1250000],[4690000,1070000]];
+    const first = new Date(t.getFullYear(), t.getMonth(), 1);
+    for (let d=new Date(first); d<t; d=addDays(d,1)){
+      const [g,a] = seed[(d.getDate()-1) % seed.length];
+      const other = d.getDate()===10 ? 850000 : 0;
+      rows.push({date: iso(d), gross:g, ad:a, other, memo: other ? '촬영비' : ''});
+    }
+    return {
+      vatRate: 10, cogsRate: 40, openingCash: 38000000, period: 'mtd', sample: true,
+      fixed: [
+        {name:'인건비', amount: 14500000},
+        {name:'사무실 임대료', amount: 2600000},
+        {name:'물류·3PL 기본료', amount: 1800000},
+        {name:'소프트웨어·구독', amount: 650000},
+        {name:'세무·보험·기타', amount: 900000},
+      ],
+      daily: rows,
+    };
+  }
+
+  let S;
+  try { const raw = localStorage.getItem(KEY); S = raw ? JSON.parse(raw) : null; } catch(e){ S = null; }
+  if (!S || !Array.isArray(S.daily) || !Array.isArray(S.fixed)) S = sampleState();
+  if (!S.period) S.period = 'mtd';
+
+  let saveTimer;
+  function save(){ clearTimeout(saveTimer); saveTimer = setTimeout(()=>{ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }, 150); }
+
+  // ---------- formatting ----------
+  const won = n => (n<0?'−':'') + '₩' + Math.round(Math.abs(n)).toLocaleString('ko-KR');
+  const wonShort = n => {
+    const a = Math.abs(n), s = n<0?'−':'';
+    if (a >= 1e8) return s + (a/1e8).toFixed(a>=1e9?0:1) + '억';
+    if (a >= 1e4) return s + Math.round(a/1e4).toLocaleString('ko-KR') + '만';
+    return s + Math.round(a).toLocaleString('ko-KR');
+  };
+  const pct = x => (isFinite(x) ? (x*100).toFixed(1) : '0.0') + '%';
+  const toNum = v => { const n = Number(String(v).replace(/[^\d.-]/g,'')); return isFinite(n) ? n : 0; };
+  const md = s => { const [,m,d] = s.split('-'); return `${Number(m)}/${Number(d)}`; };
+
+  // ---------- period ----------
+  function periodRange(){
+    const t = parseISO(todayISO());
+    const dates = S.daily.map(r=>r.date).sort();
+    switch (S.period){
+      case 'last7':  return {from: iso(addDays(t,-6)), to: iso(t), label:'최근 7일'};
+      case 'last30': return {from: iso(addDays(t,-29)), to: iso(t), label:'최근 30일'};
+      case 'prevm': { const f=new Date(t.getFullYear(), t.getMonth()-1, 1); const l=new Date(t.getFullYear(), t.getMonth(), 0); return {from: iso(f), to: iso(l), label:'지난 달'}; }
+      case 'all':    return {from: dates[0] || iso(t), to: dates[dates.length-1] || iso(t), label:'전체'};
+      default:       return {from: iso(new Date(t.getFullYear(), t.getMonth(), 1)), to: iso(t), label:'이번 달'};
+    }
+  }
+  // 고정비 일할: 기간 내 각 날짜가 속한 달의 일수로 나눠 합산
+  function fixedForRange(from, to, monthly){
+    let sum = 0;
+    for (let d=parseISO(from); iso(d)<=to; d=addDays(d,1)) sum += monthly / daysInMonth(d.getFullYear(), d.getMonth());
+    return sum;
+  }
+  function dayCount(from,to){ return Math.round((parseISO(to)-parseISO(from))/86400000)+1; }
+
+  // ---------- compute ----------
+  function compute(){
+    const {from,to,label} = periodRange();
+    const vat = (S.vatRate||0)/100;
+    const monthlyFixed = S.fixed.reduce((a,f)=>a+toNum(f.amount),0);
+    const rows = S.daily.filter(r=>r.date>=from && r.date<=to).sort((a,b)=>a.date<b.date?-1:1);
+    const perRow = rows.map(r=>{
+      const gross = toNum(r.gross), ad = toNum(r.ad), other = toNum(r.other);
+      const net = gross/(1+vat);
+      const d = parseISO(r.date);
+      const fix = monthlyFixed / daysInMonth(d.getFullYear(), d.getMonth());
+      return { ...r, gross, ad, other, net, vat: gross-net, after: net-ad, fix, day: net-ad-fix-other };
+    });
+    const sum = k => perRow.reduce((a,r)=>a+r[k],0);
+    const gross=sum('gross'), net=sum('net'), vatAmt=sum('vat'), ad=sum('ad'), other=sum('other');
+    const after = net-ad;
+    const fixed = fixedForRange(from,to,monthlyFixed);
+    const netCash = after - fixed - other;
+    const opening = toNum(S.openingCash);
+    const cogs = net * (toNum(S.cogsRate)/100);
+    return { from,to,label, rows: perRow, gross, net, vatAmt, ad, other, after, fixed, monthlyFixed, netCash, opening, closing: opening+netCash, cogs, gp: net-cogs, days: dayCount(from,to), daysWithData: perRow.length };
+  }
+
+  // ---------- render ----------
+  function render(){
+    const c = compute();
+    $('#heroPeriod').textContent = `${c.label} (${md(c.from)} – ${md(c.to)}) · 입력 ${c.daysWithData}일 / ${c.days}일`;
+    const hn = $('#heroNet'); hn.textContent = won(c.netCash); hn.className = 'value num ' + (c.netCash<0?'neg':'pos');
+    $('#kOpening').textContent = won(c.opening);
+    $('#kNet').textContent = (c.netCash>=0?'+':'') + won(c.netCash);
+    $('#kClosing').textContent = won(c.closing);
+    $('#kVat').textContent = won(c.vatAmt);
+
+    // chips
+    const chips = [];
+    const adRatio = c.net>0 ? c.ad/c.net : 0;
+    chips.push(`<span class="chip ${c.netCash>=0?'good':'bad'}">${c.netCash>=0?'▲ 현금 증가':'▼ 현금 감소'}</span>`);
+    chips.push(`<span class="chip ${adRatio>0.35?'warn':''}">광고비 비중 ${pct(adRatio)}</span>`);
+    if (c.daysWithData < c.days) chips.push(`<span class="chip">미입력 ${c.days-c.daysWithData}일</span>`);
+    if (S.sample) chips.push(`<span class="chip warn">예시 데이터</span>`);
+    $('#heroChips').innerHTML = chips.join('');
+
+    // ladder
+    $('#s1Net').textContent = won(c.net); $('#s1Gross').textContent = won(c.gross); $('#s1Vat').textContent = won(c.vatAmt); $('#s1Net2').textContent = won(c.net);
+    const s2 = $('#s2After'); s2.textContent = won(c.after); s2.className = 'big num ' + (c.after<0?'neg':'');
+    $('#s2Net').textContent = won(c.net); $('#s2Ad').textContent = won(c.ad); $('#s2After2').textContent = won(c.after);
+    $('#s2Ratio').textContent = `광고비 / 실매출 ${pct(adRatio)}`;
+    $('#s2Roas').textContent = `ROAS ${c.ad>0 ? (c.net/c.ad).toFixed(1) : '–'}x`;
+    const s3 = $('#s3Net'); s3.textContent = won(c.netCash); s3.className = 'big num ' + (c.netCash<0?'neg':'');
+    $('#s3After').textContent = won(c.after); $('#s3Fix').textContent = won(c.fixed); $('#s3Oth').textContent = won(c.other); $('#s3Net2').textContent = won(c.netCash);
+    $('#s3Basis').textContent = `월 ${wonShort(c.monthlyFixed)} × ${c.days}일 안분`;
+    const burn = c.monthlyFixed + (c.daysWithData? c.ad/c.daysWithData*30 : 0);
+    const inflow30 = c.daysWithData ? c.net/c.daysWithData*30 : 0;
+    const monthlyNet = inflow30 - burn;
+    $('#s3Runway').textContent = monthlyNet >= 0
+      ? `현재 페이스로 월 환산 순현금 +${wonShort(monthlyNet)}. 고정비만으로는 기초 현금이 ${c.monthlyFixed>0 ? (c.opening/c.monthlyFixed).toFixed(1) : '–'}개월분.`
+      : `현재 페이스로 월 환산 순현금 ${wonShort(monthlyNet)}. 이 속도면 기초 현금 소진까지 약 ${(c.opening/ -monthlyNet).toFixed(1)}개월.`;
+
+    // reference
+    $('#rCogs').textContent = won(c.cogs); $('#rGp').textContent = won(c.gp); $('#rGpAd').textContent = won(c.gp - c.ad); $('#rDiff').textContent = '+' + won(c.cogs);
+
+    // fixed table
+    const ftb = $('#fixedTbl tbody'); ftb.innerHTML = '';
+    S.fixed.forEach((f,i)=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><input class="txt" data-k="name" data-i="${i}" value="${esc(f.name)}" placeholder="항목명"></td>
+        <td><input inputmode="numeric" data-k="amount" data-i="${i}" value="${Number(f.amount||0).toLocaleString('ko-KR')}"></td>
+        <td><button type="button" class="rowdel" data-del-fixed="${i}" aria-label="삭제">×</button></td>`;
+      ftb.appendChild(tr);
+    });
+    $('#fixedTotal').textContent = won(c.monthlyFixed);
+    const t = parseISO(todayISO());
+    $('#fixedPerDay').textContent = won(c.monthlyFixed / daysInMonth(t.getFullYear(), t.getMonth()));
+
+    // daily table (period rows, newest first)
+    const dtb = $('#dailyTbl tbody'); dtb.innerHTML = '';
+    const idx = new Map(S.daily.map((r,i)=>[r.date,i]));
+    if (!c.rows.length){ dtb.innerHTML = `<tr><td colspan="9" class="empty">이 기간에 입력된 날이 없습니다. “+ 오늘” 또는 “붙여넣기”로 시작하세요.</td></tr>`; }
+    [...c.rows].reverse().forEach(r=>{
+      const i = idx.get(r.date);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><input type="date" class="txt" data-k="date" data-i="${i}" value="${r.date}"></td>
+        <td><input inputmode="numeric" data-k="gross" data-i="${i}" value="${r.gross.toLocaleString('ko-KR')}"></td>
+        <td><span class="calc">${won(r.net)}</span></td>
+        <td><input inputmode="numeric" data-k="ad" data-i="${i}" value="${r.ad.toLocaleString('ko-KR')}"></td>
+        <td><span class="calc ${r.after<0?'neg':''}">${won(r.after)}</span></td>
+        <td><input inputmode="numeric" data-k="other" data-i="${i}" value="${r.other?r.other.toLocaleString('ko-KR'):''}" placeholder="0"></td>
+        <td><span class="calc ${r.day<0?'neg':''}">${won(r.day)}</span></td>
+        <td><input class="txt" data-k="memo" data-i="${i}" value="${esc(r.memo||'')}" placeholder=""></td>
+        <td><button type="button" class="rowdel" data-del-day="${i}" aria-label="삭제">×</button></td>`;
+      dtb.appendChild(tr);
+    });
+    $('#fGross').textContent = won(c.gross); $('#fNet').textContent = won(c.net); $('#fAd').textContent = won(c.ad);
+    $('#fAfter').textContent = won(c.after); $('#fOth').textContent = won(c.other);
+    $('#fDaily').textContent = won(c.rows.reduce((a,r)=>a+r.day,0));
+    $('#sampleNote').textContent = S.sample ? '지금 보이는 숫자는 예시입니다. 값을 하나라도 고치거나 “비우기”를 누르면 예시 표시가 사라집니다.' : '';
+
+    $('#openingCash').value = c.opening ? c.opening.toLocaleString('ko-KR') : '';
+    $('#vatRate').value = S.vatRate; $('#cogsRate').value = S.cogsRate;
+    $$('#periodSeg button').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.p===S.period)));
+
+    drawWaterfall(c);
+    drawTrend(c);
+  }
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+
+  // ---------- waterfall ----------
+  function drawWaterfall(c){
+    const svg = $('#waterfall'); const W=640, H=260, padL=56, padR=16, padT=28, padB=36;
+    const steps = [
+      {k:'net',  label:'실매출',   v:c.net,      color:'var(--s-rev)', type:'total'},
+      {k:'ad',   label:'광고비',   v:-c.ad,      color:'var(--s-ad)',  type:'delta'},
+      {k:'fix',  label:'고정비',   v:-c.fixed,   color:'var(--s-fix)', type:'delta'},
+      {k:'oth',  label:'기타 지출', v:-c.other,   color:'var(--s-oth)', type:'delta'},
+      {k:'cash', label:'순현금',   v:c.netCash,  color: c.netCash>=0?'var(--accent)':'var(--bad)', type:'total'},
+    ];
+    // running levels
+    let run=0; const bars=[];
+    steps.forEach(s=>{
+      if (s.type==='total'){ bars.push({...s, y0:0, y1:s.v}); run = s.v; }
+      else { bars.push({...s, y0:run, y1:run+s.v}); run += s.v; }
+    });
+    const maxV = Math.max(0, ...bars.map(b=>Math.max(b.y0,b.y1)));
+    const minV = Math.min(0, ...bars.map(b=>Math.min(b.y0,b.y1)));
+    const span = (maxV-minV) || 1;
+    const y = v => padT + (maxV - v) / span * (H-padT-padB);
+    const n = bars.length, slot = (W-padL-padR)/n, bw = Math.min(56, slot*0.5);
+    const ticks = niceTicks(minV, maxV, 4);
+    let out = '';
+    ticks.forEach(t=>{ out += `<line class="grid" x1="${padL}" x2="${W-padR}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}"/><text x="${padL-8}" y="${(y(t)+4).toFixed(1)}" text-anchor="end">${wonShort(t)}</text>`; });
+    out += `<line class="base" x1="${padL}" x2="${W-padR}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}"/>`;
+    bars.forEach((b,i)=>{
+      const cx = padL + slot*i + slot/2, x = cx - bw/2;
+      const top = y(Math.max(b.y0,b.y1)), bot = y(Math.min(b.y0,b.y1)), h = Math.max(1, bot-top);
+      const up = b.y1 >= b.y0; // grows upward from y0
+      const r = 4;
+      // rounded on the "data end" only
+      const path = up
+        ? `M${x},${bot} V${top+r} a${r},${r} 0 0 1 ${r},-${r} H${x+bw-r} a${r},${r} 0 0 1 ${r},${r} V${bot} Z`
+        : `M${x},${top} V${bot-r} a${r},${r} 0 0 0 ${r},${r} H${x+bw-r} a${r},${r} 0 0 0 ${r},-${r} V${top} Z`;
+      out += `<path d="${path}" fill="${b.color}" data-i="${i}"><title>${b.label} ${won(b.v)}</title></path>`;
+      if (i < bars.length-1) out += `<line class="grid" x1="${(x+bw).toFixed(1)}" x2="${(padL + slot*(i+1) + slot/2 - bw/2).toFixed(1)}" y1="${y(b.y1).toFixed(1)}" y2="${y(b.y1).toFixed(1)}"/>`;
+      const ly = up ? top-6 : bot+14;
+      out += `<text class="lbl" x="${cx}" y="${ly.toFixed(1)}" text-anchor="middle">${b.type==='delta' && b.v!==0 ? '−' : (b.v<0?'−':'')}${wonShort(Math.abs(b.v))}</text>`;
+      out += `<text class="lbl2" x="${cx}" y="${H-padB+18}" text-anchor="middle">${b.label}</text>`;
+    });
+    svg.innerHTML = out;
+  }
+  function niceTicks(min,max,count){
+    const span = max-min || 1; const raw = span/count; const p = Math.pow(10, Math.floor(Math.log10(raw)));
+    const step = [1,2,2.5,5,10].map(m=>m*p).find(s=>span/s <= count) || 10*p;
+    const t=[]; for (let v=Math.ceil(min/step)*step; v<=max+1e-9; v+=step) t.push(v);
+    return t;
+  }
+
+  // ---------- trend ----------
+  function drawTrend(c){
+    const svg = $('#trend'); const W=1100, H=260, padL=64, padR=20, padT=20, padB=30;
+    const tip = $('#tip');
+    if (!c.rows.length){ svg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle">데이터가 없습니다</text>`; return; }
+    let a=0, b=0; const pts = c.rows.map(r=>{ a+=r.after; b+=r.day; return {date:r.date, after:a, cash:b, net:r.net, ad:r.ad, fix:r.fix, other:r.other}; });
+    const vals = pts.flatMap(p=>[p.after,p.cash,0]);
+    const maxV = Math.max(...vals), minV = Math.min(...vals), span=(maxV-minV)||1;
+    const y = v => padT + (maxV-v)/span*(H-padT-padB);
+    const x = i => pts.length===1 ? (padL+W-padR)/2 : padL + i/(pts.length-1)*(W-padL-padR);
+    let out='';
+    niceTicks(minV,maxV,4).forEach(t=>{ out += `<line class="grid" x1="${padL}" x2="${W-padR}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}"/><text x="${padL-8}" y="${(y(t)+4).toFixed(1)}" text-anchor="end">${wonShort(t)}</text>`; });
+    out += `<line class="base" x1="${padL}" x2="${W-padR}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}"/>`;
+    const every = Math.max(1, Math.ceil(pts.length/10));
+    pts.forEach((p,i)=>{ if (i%every===0 || i===pts.length-1) out += `<text x="${x(i).toFixed(1)}" y="${H-padB+18}" text-anchor="middle">${md(p.date)}</text>`; });
+    const line = k => pts.map((p,i)=>`${i?'L':'M'}${x(i).toFixed(1)},${y(p[k]).toFixed(1)}`).join('');
+    const area = pts.map((p,i)=>`${i?'L':'M'}${x(i).toFixed(1)},${y(p.cash).toFixed(1)}`).join('') + `L${x(pts.length-1).toFixed(1)},${y(0).toFixed(1)}L${x(0).toFixed(1)},${y(0).toFixed(1)}Z`;
+    out += `<path d="${area}" fill="var(--accent)" opacity=".10"/>`;
+    out += `<path d="${line('after')}" fill="none" stroke="var(--s-ad)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    out += `<path d="${line('cash')}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    const last = pts[pts.length-1], lx = x(pts.length-1);
+    out += `<circle cx="${lx.toFixed(1)}" cy="${y(last.after).toFixed(1)}" r="5" fill="var(--s-ad)" stroke="var(--surface)" stroke-width="2"/>`;
+    out += `<circle cx="${lx.toFixed(1)}" cy="${y(last.cash).toFixed(1)}" r="5" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>`;
+    const dy = Math.abs(y(last.after)-y(last.cash)) < 14 ? 14 : 0;
+    out += `<text class="lbl" x="${(lx-8).toFixed(1)}" y="${(y(last.after)-8-dy).toFixed(1)}" text-anchor="end">${wonShort(last.after)}</text>`;
+    out += `<text class="lbl" x="${(lx-8).toFixed(1)}" y="${(y(last.cash)+16).toFixed(1)}" text-anchor="end">${wonShort(last.cash)}</text>`;
+    out += `<line id="xh" class="base" x1="0" x2="0" y1="${padT}" y2="${H-padB}" style="display:none"/>`;
+    out += `<rect x="${padL}" y="${padT}" width="${W-padL-padR}" height="${H-padT-padB}" fill="transparent" id="hit"/>`;
+    svg.innerHTML = out;
+    const hit = $('#hit', svg), xh = $('#xh', svg);
+    hit.addEventListener('mousemove', e=>{
+      const pt = svg.createSVGPoint(); pt.x=e.clientX; pt.y=e.clientY; const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+      const i = Math.max(0, Math.min(pts.length-1, Math.round((p.x-padL)/((W-padL-padR)/Math.max(1,pts.length-1)))));
+      const d = pts[i];
+      xh.setAttribute('x1', x(i)); xh.setAttribute('x2', x(i)); xh.style.display='';
+      tip.innerHTML = `<b>${d.date}</b><div class="r"><span>실매출(일)</span><span>${won(d.net)}</span></div><div class="r"><span>광고비(일)</span><span>−${won(d.ad)}</span></div><div class="r"><span>고정비 안분(일)</span><span>−${won(d.fix)}</span></div>${d.other?`<div class="r"><span>기타(일)</span><span>−${won(d.other)}</span></div>`:''}<hr style="border:0;border-top:1px solid rgba(255,255,255,.2);margin:4px 0"><div class="r"><span>광고비 차감 후 누적</span><span>${won(d.after)}</span></div><div class="r"><span>순현금 누적</span><span>${won(d.cash)}</span></div>`;
+      tip.style.display='block';
+      const tw = tip.offsetWidth, th = tip.offsetHeight;
+      tip.style.left = Math.min(window.innerWidth - tw - 8, e.clientX + 14) + 'px';
+      tip.style.top = Math.max(8, Math.min(window.innerHeight - th - 8, e.clientY - th/2)) + 'px';
+    });
+    hit.addEventListener('mouseleave', ()=>{ tip.style.display='none'; xh.style.display='none'; });
+  }
+
+  // ---------- events ----------
+  function touched(){ if (S.sample){ S.sample=false; } }
+  document.addEventListener('input', e=>{
+    const el = e.target; if (!(el instanceof HTMLInputElement)) return;
+    if (el.id==='openingCash'){ S.openingCash = toNum(el.value); save(); renderSoft(); return; }
+    if (el.id==='vatRate'){ S.vatRate = Math.max(0, toNum(el.value)); save(); renderSoft(); return; }
+    if (el.id==='cogsRate'){ S.cogsRate = Math.max(0, toNum(el.value)); save(); renderSoft(); return; }
+    const k = el.dataset.k, i = Number(el.dataset.i);
+    if (!k || isNaN(i)) return;
+    const inFixed = el.closest('#fixedTbl');
+    const row = inFixed ? S.fixed[i] : S.daily[i];
+    if (!row) return;
+    if (k==='name' || k==='memo' || k==='date') row[k] = el.value; else row[k] = toNum(el.value);
+    touched(); save();
+    // 값 입력 중엔 표를 다시 그리지 않고 요약만 갱신 (포커스 유지)
+    renderSoft();
+  });
+  document.addEventListener('change', e=>{
+    const el = e.target; if (!(el instanceof HTMLInputElement)) return;
+    if (el.dataset.k) { if (el.dataset.k==='date') dedupe(); render(); }
+    else if (el.id==='openingCash') render();
+  });
+  // 포커스 유지가 필요한 입력 중에는 표를 제외한 요약/차트만 다시 그림
+  function renderSoft(){
+    const active = document.activeElement;
+    const tbodies = [$('#fixedTbl tbody').innerHTML, $('#dailyTbl tbody').innerHTML];
+    render();
+    // render() rebuilt the tables; restore the field the user is typing in
+    if (active && active.dataset && active.dataset.k !== undefined){
+      const sel = `input[data-k="${active.dataset.k}"][data-i="${active.dataset.i}"]`;
+      const table = active.closest('#fixedTbl') ? '#fixedTbl' : '#dailyTbl';
+      const el = $(table + ' ' + sel);
+      if (el){ el.value = active.value; el.focus(); try{ el.setSelectionRange(el.value.length, el.value.length); }catch(_){} }
+    } else if (active && active.id && $('#'+active.id) && active.id!=='openingCash'){ $('#'+active.id).focus(); }
+    else if (active && active.id==='openingCash'){ const el=$('#openingCash'); el.value = active.value; el.focus(); }
+  }
+  function dedupe(){
+    const seen = new Map();
+    S.daily.forEach(r=>{ if (r.date) seen.set(r.date, r); });
+    S.daily = Array.from(seen.values()).sort((a,b)=>a.date<b.date?-1:1);
+  }
+
+  document.addEventListener('click', e=>{
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.p){ S.period = b.dataset.p; save(); render(); return; }
+    if (b.dataset.delFixed !== undefined){ S.fixed.splice(Number(b.dataset.delFixed),1); touched(); save(); render(); return; }
+    if (b.dataset.delDay !== undefined){ S.daily.splice(Number(b.dataset.delDay),1); touched(); save(); render(); return; }
+    switch (b.id){
+      case 'addFixed': S.fixed.push({name:'', amount:0}); touched(); save(); render(); { const last=$$('#fixedTbl input[data-k="name"]').pop(); if(last) last.focus(); } break;
+      case 'addDay': {
+        const t = todayISO();
+        if (!S.daily.some(r=>r.date===t)) { S.daily.push({date:t, gross:0, ad:0, other:0, memo:''}); dedupe(); }
+        if (!['mtd','last7','last30','all'].includes(S.period)) S.period='mtd';
+        touched(); save(); render();
+        const el = $(`#dailyTbl input[data-k="gross"][data-i="${S.daily.findIndex(r=>r.date===t)}"]`); if (el) el.focus();
+        break; }
+      case 'importBtn': $('#importText').value=''; $('#importDlg').showModal(); break;
+      case 'importCancel': $('#importDlg').close(); break;
+      case 'importOk': doImport(); break;
+      case 'exportBtn': navigator.clipboard.writeText(JSON.stringify(S, null, 1)).then(()=>toast('JSON을 클립보드에 복사했습니다')).catch(()=>toast('복사 실패: 브라우저 권한을 확인하세요')); break;
+      case 'clearBtn': if (confirm('일별 데이터를 모두 지웁니다. 고정비와 설정은 유지됩니다.')){ S.daily=[]; S.sample=false; save(); render(); } break;
+    }
+  });
+
+  function doImport(){
+    const text = $('#importText').value.trim(); if (!text){ $('#importDlg').close(); return; }
+    let n=0, bad=0;
+    text.split(/\r?\n/).forEach(line=>{
+      if (!line.trim()) return;
+      // 탭 또는 쉼표 구분. 숫자 안의 쉼표(4,850,000)를 살리기 위해 탭 우선, 없으면 "숫자,숫자,숫자" 패턴 정리
+      let parts;
+      if (line.includes('\t')) parts = line.split('\t');
+      else parts = line.replace(/(\d),(?=\d{3}(\D|$))/g,'$1').split(',');
+      parts = parts.map(s=>s.trim());
+      const d = normDate(parts[0]); if (!d){ bad++; return; }
+      const gross = toNum(parts[1]||0), ad = toNum(parts[2]||0);
+      const other = parts.length>3 && /\d/.test(parts[3]) ? toNum(parts[3]) : 0;
+      const memo = parts.length>4 ? parts.slice(4).join(' ') : (parts.length>3 && !/\d/.test(parts[3]) ? parts[3] : '');
+      const ex = S.daily.find(r=>r.date===d);
+      if (ex) Object.assign(ex, {gross, ad, other, memo: memo||ex.memo}); else S.daily.push({date:d, gross, ad, other, memo});
+      n++;
+    });
+    dedupe(); touched(); save(); $('#importDlg').close(); render();
+    toast(`${n}일 가져옴${bad?`, ${bad}줄 날짜 인식 실패`:''}`);
+  }
+  function normDate(s){
+    if (!s) return null;
+    s = s.trim().replace(/\./g,'-').replace(/\//g,'-').replace(/\s/g,'');
+    let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/); if (m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+    m = s.match(/^(\d{1,2})-(\d{1,2})$/); if (m){ const y=new Date().getFullYear(); return `${y}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`; }
+    m = s.match(/^(\d{2})(\d{2})(\d{2})$/); if (m) return `20${m[1]}-${m[2]}-${m[3]}`;
+    return null;
+  }
+  let toastT; function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2200); }
+
+  render();
+})();
+</script>
+</body>
+</html>
