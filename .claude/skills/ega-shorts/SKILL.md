@@ -34,6 +34,7 @@ description: "EGA 유튜브 쇼츠 양산 파이프라인 실행 — 쇼츠 만�
 ## TTS
 - 기본: edge-tts 무료 (ko-KR-SunHiNeural, rate -4%), brand.json의 tts 섹션
 - 업그레이드: ELEVENLABS_API_KEY 받으면 brand.json의 tts.engine을 elevenlabs로
+- 주의 (2026-10-04 확인): 클라우드 세션 프록시가 edge-tts 엔드포인트(speech.platform.bing.com)를 403으로 막는 경우가 있음 → 맥에서 실행하거나 환경 허용 도메인에 추가. edge-tts는 비공식 클라이언트(24kHz 모노)라 **게시용 음성은 ElevenLabs/Azure Speech 권장** (insta-growth production-spec.md)
 
 ## KPI 기록
 발행 후 주간 단위로 Supermetrics(YouTube 소스)에서 조회수·시청지속을 덩어 훅별 성과를 hooks.json 개선에 반영한다. 선행지표는 발행량·검수 승인율·브랜드 검색량이며 조회수는 1차 KPI가 아니다.

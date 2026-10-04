@@ -49,4 +49,5 @@ export const SIZES = {
   '4:5': { width: 1080, height: 1350 },
   '3:4': { width: 1080, height: 1440 },
   '1:1': { width: 1080, height: 1080 },
+  '9:16': { width: 1080, height: 1920 }, // Reels cover image (cover_url)
 };

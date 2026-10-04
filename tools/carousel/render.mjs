@@ -7,7 +7,7 @@
 // {
 //   "id": "ega-2026-10-07-sauna-myth",
 //   "brand": "ega" | "adro",
-//   "size": "4:5" (default) | "3:4" | "1:1",
+//   "size": "4:5" (default, API carousel) | "3:4" (app-only hero carousel with music) | "1:1" | "9:16" (Reels cover_url),
 //   "handle": "@brand",                     // optional, overrides theme
 //   "format": "jpg" (default; the Instagram API accepts JPEG only) | "png",
 //   "slides": [
@@ -151,6 +151,8 @@ function pageHtml(spec, s, i, total, specDir) {
   const img = imageUrl(s.image, specDir);
   const handle = spec.handle ?? t.handle;
   const pad = 96;
+  // Reels cover (9:16): keep text inside y 300-1240 so it survives the Reels UI and the 3:4 grid crop.
+  const inset = spec.size === '9:16' ? `300px ${pad}px 680px` : `${pad}px ${pad}px ${pad + 24}px`;
   return `<!doctype html><html lang="ko"><head><meta charset="utf-8">
 <link rel="stylesheet" href="${t.fonts}">
 <style>
@@ -161,7 +163,7 @@ function pageHtml(spec, s, i, total, specDir) {
   .bgimg { position: absolute; inset: 0; background: url("${img || ''}") center/cover no-repeat; }
   .scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.25) 40%, ${bg}F2 78%, ${bg} 100%); }
   ${t.grid ? `.grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px); background-size: 90px 90px; }` : ''}
-  .frame { position: absolute; inset: ${pad}px ${pad}px ${pad + 24}px; display: flex; flex-direction: column; }
+  .frame { position: absolute; inset: ${inset}; display: flex; flex-direction: column; }
   .top { display: flex; justify-content: space-between; align-items: baseline; color: ${muted};
          font-family: ${t.eyebrow}; font-style: ${t.eyebrowStyle}; letter-spacing: ${t.eyebrowTracking}; font-size: 34px; }
   .top .eyebrow { color: ${accent}; }
@@ -191,13 +193,13 @@ function pageHtml(spec, s, i, total, specDir) {
   .cta { display: flex; flex-direction: column; gap: 36px; }
   .action { display: inline-block; align-self: flex-start; font-size: 36px; padding: 22px 34px; border-radius: 999px;
             background: ${accent}; color: ${bg}; font-weight: 700; }
-  .disclaimer { font-size: 22px; line-height: 1.45; color: ${muted}; margin-top: 18px; }
+  .disclaimer { font-size: 24px; line-height: 1.45; color: ${muted}; margin-top: 18px; }
   .bottom { display: flex; justify-content: space-between; align-items: center; font-size: 26px; color: ${muted};
             border-top: 2px solid ${accent}; padding-top: 22px; margin-top: 28px; }
 </style></head><body>
 ${img ? '<div class="bgimg"></div><div class="scrim"></div>' : ''}${t.grid ? '<div class="grid"></div>' : ''}
 <div class="frame">
-  <div class="top"><span class="eyebrow">${esc(s.eyebrow || '')}</span><span>${String(i + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}</span></div>
+  <div class="top"><span class="eyebrow">${esc(s.eyebrow || '')}</span><span>${total > 1 ? `${String(i + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}` : ''}</span></div>
   <div class="content">${slideBody(s, i, total)}</div>
   ${s.disclaimer ? `<p class="disclaimer">${esc(s.disclaimer)}</p>` : ''}
   <div class="bottom"><span>${esc(handle)}</span><span>${i === 0 && total > 1 ? '넘겨서 보기 →' : esc(spec.footer || '')}</span></div>
