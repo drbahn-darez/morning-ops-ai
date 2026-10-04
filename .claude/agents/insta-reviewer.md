@@ -12,7 +12,7 @@ model: inherit
 
 ## 절차
 1. `meta.json`, `brief.md`, `caption.txt`, 그리고 `carousel.json` + 렌더된 PNG(특히 `*_sheet.png`와 1번 장) 또는 `reel.md`를 읽는다. 이미지는 Read로 직접 본다.
-2. 컴플라이언스: `python3 tools/compliance/check.py <파일> --brand <brand> [--paid]` 를 캡션과 본문 각각 실행. 그다음 `.claude/skills/insta-growth/references/compliance.md` 기준으로 **문맥상** 위반(체험기형 효능 암시, 질병명 연상, 불법 튜닝 조장, 출처 없는 수치, 비교광고)을 직접 판단한다. 스크립트가 PASS여도 문맥 위반이면 REJECT.
+2. 컴플라이언스: `python3 tools/compliance/check.py <패키지 폴더> --brand <brand>` 실행. 이미지 안에 구워진 텍스트(리그램 UGC, 촬영본 자막)는 스크립트가 못 읽으므로 이미지를 직접 보고 같은 기준을 적용한다. 그다음 `.claude/skills/insta-growth/references/compliance.md` 기준으로 **문맥상** 위반(체험기형 효능 암시, 질병명 연상, 불법 튜닝 조장, 출처 없는 수치, 비교광고)을 직접 판단한다. 스크립트가 PASS여도 문맥 위반이면 REJECT.
 3. 크리에이티브 채점 (각 1~5점, 근거 한 줄):
    - **Hook** — 첫 장/첫 1초에 스크롤을 멈출 이유가 있는가 (질문·대비·숫자·호기심 갭)
    - **Clarity** — 무엇에 관한 콘텐츠인지 1초 안에 읽히는가, 한 장 한 메시지인가

@@ -21,7 +21,9 @@ model: inherit
   - adro는 실제 차량 촬영본 중심. 촬영본 위치(Drive `IG POST` 폴더 등)를 샷리스트에 명시한다.
 - `caption.txt` — 첫 줄 = 훅 재진술(125자 안에서 잘림 고려), 본문, CTA 1개, 해시태그 3~5개. 유료/협찬이면 첫머리에 공정위 표시 문구.
 - `alt.txt` — 접근성 대체 텍스트
-- `meta.json` — `{brand, date, pillar, format, hook_id, hypothesis, experiment, paid, trial}`
+- `meta.json` — `{brand, date, pillar, format, hook_id, hypothesis, experiment, trial}` + 컴플라이언스 필드:
+  `product_category`(none/general_food/hff/functional_food/cosmetic/functional_cosmetic/sauna_service/auto_part/saas), `paid`·`gifted`·`employee_post`(무료 이용권·상품 포함), `review_id`, `evidence_ids`(수치·최상급 근거 파일 — 패키지 `evidence/`), `ai_assets`, `is_ai_generated`, `ai_persona_role`, `audio_source`·`audio_license_id`, `third_party_footage`·`footage_license_id`, `public_road_driving`, `competitor_named`, 릴스 협찬이면 `on_video_disclosure_start/end`
+- 릴스 커버: `cover.json` (`size: "9:16"`, `layout: "cover"`) → 렌더해 `cover_url`용 JPEG
 
 ## 품질 규칙
 - 첫 프레임/첫 장에서 **무엇에 관한 콘텐츠인지 1초 안에** 알 수 있어야 한다.
@@ -31,6 +33,6 @@ model: inherit
 - AI 생성 이미지를 실사처럼 쓰면 인스타 AI 라벨 정책을 따른다(production-spec.md).
 
 ## 마무리 (필수)
-1. `python3 tools/compliance/check.py <패키지의 carousel.json 또는 reel.md> --brand <brand> [--paid]` 실행. caption.txt도 따로 검사.
+1. `python3 tools/compliance/check.py <패키지 폴더> --brand <brand>` 실행 (meta·캐러셀·릴스 스크립트·캡션·대체 텍스트를 한 번에 검사).
 2. REJECT면 고쳐서 PASS/FLAG가 될 때까지 반복. FLAG 사유는 `meta.json`의 `flags`에 남긴다.
 3. 반환: 패키지 경로, 렌더된 파일 목록(콘택트시트 포함), 컴플라이언스 결과, 리뷰어에게 확인받을 점 1~3개.

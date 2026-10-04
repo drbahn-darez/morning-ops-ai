@@ -191,6 +191,16 @@ class PublishTest(unittest.TestCase):
         self.assertEqual(upload["headers"]["Authorization"], "OAuth TOKEN1234567890")
         self.assertFalse(res["published"])
 
+    def test_reel_disclosure_and_location_params(self):
+        c, api = make_client({("POST", "/1789/media"): {"id": "c2"}})
+        c.create_reel("ega", "[광고] 리추얼", video_url="https://a/v.mp4", is_paid_partnership=True,
+                      branded_content_sponsor_ids=["111", "222", "333"], location_id="999", is_ai_generated=True)
+        form = api.calls[0]["form"]
+        self.assertEqual(form["is_paid_partnership"], "true")
+        self.assertEqual(json.loads(form["branded_content_sponsor_ids"]), ["111", "222"])
+        self.assertEqual(form["location_id"], "999")
+        self.assertEqual(form["is_ai_generated"], "true")
+
     def test_reel_needs_exactly_one_source(self):
         c, _ = make_client({})
         with self.assertRaises(IGError):

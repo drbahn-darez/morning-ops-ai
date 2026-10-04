@@ -168,7 +168,7 @@ function pageHtml(spec, s, i, total, specDir) {
          font-family: ${t.eyebrow}; font-style: ${t.eyebrowStyle}; letter-spacing: ${t.eyebrowTracking}; font-size: 34px; }
   .top .eyebrow { color: ${accent}; }
   .content { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 36px; min-height: 0; }
-  h1, h2, blockquote { font-family: ${t.headline}; font-weight: ${t.headlineWeight}; line-height: 1.22; letter-spacing: -0.02em; }
+  h1, h2, blockquote { font-family: ${t.headline}; font-weight: ${t.headlineWeight}; line-height: 1.22; letter-spacing: -0.02em; text-wrap: balance; }
   h1 { font-size: 92px; }
   h2 { font-size: 76px; }
   strong { color: ${accent}; font-weight: inherit; }

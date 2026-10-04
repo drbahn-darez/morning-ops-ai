@@ -6,7 +6,8 @@
 - 자동차 에어로·카본 바디킷 + AOX(에어로 CFD SaaS). 미국 UC Irvine Experience Center.
 - 매출 구조: FY2026 2Q 누계 95.7억 전량 HW, **US B2C 비중 75%**, BMW가 1위 브랜드(G8X M3/M4, G87 M2), 그다음 Toyota GR Supra·GR86·GR Yaris, Tesla(Model S Plaid·Model 3 Perf.)가 성장률 최고 (주주간담회 9/10).
 - 브랜딩 전략 차종: 람보르기니 테메라리오, 우루스 SE, 포르쉐 992.2 GT3.
-- 검증 수치(자체 테스트): Tesla Model Y **공기저항 15% 개선, 전비 4.58% 개선**. AOX 500만 셀 vs 일반 CFD 10억 셀. → 쓸 때마다 "adro 자체 테스트, 차종, 조건" 병기.
+- 내부 수치(자체 테스트): Tesla Model Y 공기저항 15% 개선, 전비 4.58% 개선. AOX 500만 셀 vs 일반 CFD 10억 셀.
+  - ⚠️ **광고·SNS 사용 보류 (법무 확인 전)**: 공정위 실증 고시 2026-15는 연비·효율 주장에 **독립·인정 시험기관의 실차 시험**을 요구하고 자사 시험은 원칙적으로 인정하지 않는다. "전비 4.58%"는 사용 금지, "공기저항 15%"는 시험 방법·주체 확인 후 조건(차종·속도·방법·기준·날짜)을 같은 장에 표기하는 조건으로만 (compliance.md §5). 컴플라이언스 게이트는 `evidence_ids` 없는 수치를 REJECT한다.
 - AOX: 11월 중순 정식 출시. **Top Gear 촬영 2026-11-09 주간 @ Irvine** — UK 측과 진행, Top Gear가 새로 만드는 채널 업로드 방향 논의 중 (#c-level 2026-08-21).
 - 내부 AOX 마케팅 플랜 3축 (#c-level 2026-08-21): ① 공신력 채널 언급(Top Gear) ② 인플루언서 콘텐츠 ③ **고객 참여형 콘테스트(인스타 바이럴)**.
 - 유료 증폭 경로 보유: Meta 광고 릴스 세트(BMW·JDM·Tesla 프로그램) 상시 운영 — 2025 블랙프라이데이 하루 ROAS 17.8 (단일일 수치).
@@ -61,7 +62,7 @@
 - 대가(제품·할인·금전) 있으면: 유료 파트너십 라벨 + 첫머리 광고 표시(국내 공정위), 미국 크리에이터는 FTC Endorsement Guides(16 CFR 255).
 
 ## 금지·주의 (상세 compliance.md)
-- 출처 없는 성능 수치 (표시광고법 실증책임) — 15%, 4.58%는 "adro 자체 테스트(Tesla Model Y)" 병기
+- 실증 없는 성능 수치 (표시광고법 제5조, 실증 고시 2026-15) — 효율 수치는 독립 시험 필수, 드래그 수치는 실증 + 같은 장 조건 표기
 - **Ansys 등 경쟁사 직접 비방·비교 우위 주장 금지** — "다른 카테고리" 포지셔닝 (AOX 스킬 원칙)
 - 근거 없는 시간 주장("몇 분 만에 CFD") 금지
 - 불법 튜닝 조장 표현 금지 ("구조변경 없이", "단속 걱정 없는" 등) — 국내 판매 게시물은 튜닝 승인 필요 여부 확인
@@ -72,7 +73,7 @@
 ## 훅 20선 (Trial Reels로 검증할 가설; 수치는 내부 실증 수치만)
 | id | 훅 (EN) | 국문 병기/조건 | 필러 |
 |---|---|---|---|
-| adro-h01 | This kit cut drag 15% on a Tesla Model Y. Here's where the air was going. | 모델 Y 공기저항 15%, 어디서 줄었을까 (adro 자체 테스트 표기) | 1 |
+| adro-h01 | This kit cut drag 15% on a Tesla Model Y. Here's where the air was going. | ⚠️ 실증·법무 확인 전 보류. 승인 시 조건 표기 필수 | 1 |
 | adro-h02 | Stock vs adro. Watch the smoke. | | 1 |
 | adro-h03 | Same car. Same track. One difference. | GT3 랩 수치 공개 승인 후에만 | 3 |
 | adro-h04 | We taped 200 tufts to a Model Y to see where the air gives up. | 실제 개수로 교체 | 1 |
@@ -90,7 +91,7 @@
 | adro-h16 | Every crease on this bumper has a job. Here are 3. | | 1 |
 | adro-h17 | Irvine to Seoul: one part, two continents. | 창고 워크스루 | 2 |
 | adro-h18 | Rate this spec 1–10. | | 3 |
-| adro-h19 | What does 15% less drag actually mean on a road trip? | 4.58% 전비만 근거, 주행거리 환산은 실측 시에만 | 1 |
+| adro-h19 | What does 15% less drag actually mean on a road trip? | ⚠️ 보류 — 효율·주행거리 환산은 독립 시험기관 실차 시험 필요 | 1 |
 | adro-h20 | Top Gear asked one question: does it actually work? | BBC 승인·엠바고 해제 후에만 | 5 |
 
 ## 발행 리듬

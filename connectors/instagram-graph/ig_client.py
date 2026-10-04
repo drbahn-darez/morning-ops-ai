@@ -438,7 +438,8 @@ class IGClient:
                     cover_url: str | None = None, thumb_offset_ms: int | None = None, share_to_feed: bool = True,
                     collaborators: list[str] | None = None, audio_name: str | None = None,
                     trial_graduation: str | None = None, is_ai_generated: bool = False,
-                    is_paid_partnership: bool = False) -> dict:
+                    is_paid_partnership: bool = False, branded_content_sponsor_ids: list[str] | None = None,
+                    location_id: str | None = None) -> dict:
         acct = self.account(brand)
         if bool(video_url) == bool(video_path):
             raise IGError("Pass exactly one of video_url (public URL) or video_path (local file).")
@@ -466,6 +467,10 @@ class IGClient:
             params["is_ai_generated"] = "true"
         if is_paid_partnership:
             params["is_paid_partnership"] = "true"
+        if branded_content_sponsor_ids:
+            params["branded_content_sponsor_ids"] = json.dumps(branded_content_sponsor_ids[:2])
+        if location_id:
+            params["location_id"] = location_id
         created = self._call(acct, "POST", f"{acct.user_id}/media", params)
         container_id = created.get("id")
         if video_path:
@@ -482,7 +487,8 @@ class IGClient:
 
     def create_carousel(self, brand: str, caption: str, items: list[dict],
                         collaborators: list[str] | None = None, is_ai_generated: bool = False,
-                        is_paid_partnership: bool = False) -> dict:
+                        is_paid_partnership: bool = False, branded_content_sponsor_ids: list[str] | None = None,
+                        location_id: str | None = None) -> dict:
         acct = self.account(brand)
         if not CAROUSEL_MIN <= len(items) <= CAROUSEL_MAX:
             raise IGError(f"An API carousel needs {CAROUSEL_MIN} to {CAROUSEL_MAX} items (the app allows 20).")
@@ -508,6 +514,10 @@ class IGClient:
             params["is_ai_generated"] = "true"
         if is_paid_partnership:
             params["is_paid_partnership"] = "true"
+        if branded_content_sponsor_ids:
+            params["branded_content_sponsor_ids"] = json.dumps(branded_content_sponsor_ids[:2])
+        if location_id:
+            params["location_id"] = location_id
         parent = self._call(acct, "POST", f"{acct.user_id}/media", params)
         return {"container_id": parent.get("id"), "children": children, "published": False,
                 "next": "poll ig_container_status until FINISHED, then ig_publish after human approval"}

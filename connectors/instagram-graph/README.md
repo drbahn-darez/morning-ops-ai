@@ -82,5 +82,5 @@
 
 ## 테스트
 ```bash
-python3 -m unittest connectors/instagram-graph/test_ig_client.py   # 가짜 API로 24개 테스트
+python3 -m unittest connectors/instagram-graph/test_ig_client.py   # 가짜 API로 25개 테스트
 ```

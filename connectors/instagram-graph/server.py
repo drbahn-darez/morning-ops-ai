@@ -103,22 +103,28 @@ def ig_create_reel_container(brand: str, caption: str, video_url: str | None = N
                              cover_url: str | None = None, thumb_offset_ms: int | None = None,
                              share_to_feed: bool = True, collaborators: list[str] | None = None,
                              audio_name: str | None = None, trial_graduation: str | None = None,
-                             is_ai_generated: bool = False, is_paid_partnership: bool = False) -> str:
+                             is_ai_generated: bool = False, is_paid_partnership: bool = False,
+                             branded_content_sponsor_ids: list[str] | None = None, location_id: str | None = None) -> str:
     """Upload a Reel into a PRIVATE container (nothing is posted; containers expire after 24h). Give either a public
     video_url or a local video_path (resumable upload; documented for Facebook Login). trial_graduation=MANUAL or
     SS_PERFORMANCE makes it a Trial Reel shown to non-followers first. Set is_ai_generated for AI imagery and
-    is_paid_partnership for paid collabs. Max 5 hashtags, 2,200 chars. Returns container_id."""
+    is_paid_partnership (+ branded_content_sponsor_ids, max 2) for paid collabs — Korean law still needs '광고' text
+    at the start of the caption and in the video. location_id = the venue's Facebook Page ID (tag EGA Brain Sauna).
+    Max 5 hashtags, 2,200 chars. Returns container_id."""
     return _run(client().create_reel, brand, caption, video_url, video_path, cover_url, thumb_offset_ms,
-                share_to_feed, collaborators, audio_name, trial_graduation, is_ai_generated, is_paid_partnership)
+                share_to_feed, collaborators, audio_name, trial_graduation, is_ai_generated, is_paid_partnership,
+                branded_content_sponsor_ids, location_id)
 
 
 @mcp.tool()
 def ig_create_carousel_container(brand: str, caption: str, items: list[dict],
                                  collaborators: list[str] | None = None, is_ai_generated: bool = False,
-                                 is_paid_partnership: bool = False) -> str:
+                                 is_paid_partnership: bool = False, branded_content_sponsor_ids: list[str] | None = None,
+                                 location_id: str | None = None) -> str:
     """Create a PRIVATE carousel container from 2-10 items (API limit), each {"image_url": "<public .jpg>", "alt_text": ...}
     or {"video_url": ...}. Images must be JPEG, sRGB, <= 8 MB. Nothing is posted. Returns container_id."""
-    return _run(client().create_carousel, brand, caption, items, collaborators, is_ai_generated, is_paid_partnership)
+    return _run(client().create_carousel, brand, caption, items, collaborators, is_ai_generated, is_paid_partnership,
+                branded_content_sponsor_ids, location_id)
 
 
 @mcp.tool()
