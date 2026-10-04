@@ -21,7 +21,7 @@ meta.json fields the checker understands (all optional):
   audio_license_id, third_party_footage, footage_license_id, public_road_driving, competitor_named
 
 Verdict: REJECT (rewrite before review) > FLAG (human/legal check) > PASS.
-Exit code: 2 = REJECT, 1 = FLAG, 0 = PASS. This is a screening tool, not legal advice.
+Exit code: 2 = REJECT, 1 = FLAG, 0 = PASS, 3 = checker error (treat as REJECT). This is a screening tool, not legal advice.
 """
 
 from __future__ import annotations
@@ -37,6 +37,7 @@ SEVERITY_ORDER = {"PASS": 0, "FLAG": 1, "REJECT": 2}
 SKIP_KEYS = {"image", "video", "id", "brand", "size", "layout", "audio", "format", "handle", "meta"}
 REVIEW_REQUIRED = {"hff", "functional_food", "special_nutrition", "special_medical"}
 MAX_HASHTAGS, MAX_CAPTION = 5, 2200
+BRANDS = {"ega", "adro"}
 
 
 def collect_text(node, path="$"):
@@ -63,7 +64,11 @@ def _read_json(p: Path):
 def load_package(arg: str) -> tuple[dict, dict]:
     """Return (content, meta). content maps a source name to its parsed content."""
     p = Path(arg)
-    if p.is_dir():
+    try:
+        is_dir, exists = p.is_dir(), p.exists()
+    except OSError:  # literal caption longer than NAME_MAX bytes
+        is_dir = exists = False
+    if is_dir:
         meta = _read_json(p / "meta.json") or {}
         content: dict = {}
         for name in ("carousel.json", "cover.json"):
@@ -75,13 +80,13 @@ def load_package(arg: str) -> tuple[dict, dict]:
             if (p / name).exists():
                 content[name] = (p / name).read_text(encoding="utf-8")
         return content, meta
-    raw = p.read_text(encoding="utf-8") if p.exists() else arg
+    raw = p.read_text(encoding="utf-8") if exists else arg
     try:
         data = json.loads(raw)
     except json.JSONDecodeError:
         return {"caption.txt": raw}, {}
     meta = data.get("meta", {}) if isinstance(data, dict) else {}
-    return {p.name if p.exists() else "content": data}, meta
+    return {p.name if exists else "content": data}, meta
 
 
 def _hit(sev, rule_id, why, law="", fix="", where="$", match=""):
@@ -89,8 +94,12 @@ def _hit(sev, rule_id, why, law="", fix="", where="$", match=""):
 
 
 def check(content: dict, brand: str, meta: dict | None = None, paid: bool = False, rules: dict | None = None) -> dict:
+    if brand not in BRANDS:
+        raise ValueError(f"unknown brand {brand!r}; expected one of {sorted(BRANDS)}")
     rules = rules or json.loads(RULES_PATH.read_text(encoding="utf-8"))
     meta = dict(meta or {})
+    if meta.get("brand") and str(meta["brand"]).strip().lower() != brand:
+        raise ValueError(f"meta.json brand {meta['brand']!r} does not match --brand {brand!r}")
     if paid:
         meta["paid"] = True
     texts = list(collect_text(content))
@@ -111,11 +120,11 @@ def check(content: dict, brand: str, meta: dict | None = None, paid: bool = Fals
         if sev == "REJECT" and rule.get("downgrade_if_meta") and meta.get(rule["downgrade_if_meta"]):
             sev = "FLAG"
         for path, text in texts:
-            if unless and unless.search(text):
-                continue
-            m = rx.search(text)
-            if m:
+            for m in rx.finditer(text):
+                if unless and unless.search(_sentence(text, m)):
+                    continue
                 hits.append(_hit(sev, rule["id"], rule["why"], rule.get("law", ""), rule.get("fix", ""), path, m.group(0)))
+                break
 
     # 2. Pre-review for health functional food classes
     if meta.get("product_category") in REVIEW_REQUIRED and not meta.get("review_id"):
@@ -141,15 +150,13 @@ def check(content: dict, brand: str, meta: dict | None = None, paid: bool = Fals
     disc = rules["disclosure"]
     tied = any(meta.get(k) for k in ("paid", "gifted", "employee_post"))
     if tied:
-        caption = content.get("caption.txt", "")
-        if not caption and isinstance(content.get("content"), dict):
-            caption = content["content"].get("caption", "")
+        caption = _caption(content)
         first_line = caption.strip().split("\n", 1)[0] if caption else ""
         head = first_line[: disc.get("head_chars", 30)]
         first_slide = _first_slide_text(content)
         valid = re.compile(disc["valid"])
         in_caption = bool(valid.search(head))
-        in_image = bool(re.search(r"광고|협찬", first_slide))
+        in_image = bool(re.search(r"광고(?! ?(아님|아니|아닙|문의|없))|협찬(?! ?(아님|아니|아닙|문의|·?제휴))", first_slide))
         if not (in_caption or in_image):
             why = disc["why"]
             if re.search(disc["invalid_only"], head, re.IGNORECASE):
@@ -205,7 +212,7 @@ def check(content: dict, brand: str, meta: dict | None = None, paid: bool = Fals
             hits.append(_hit("FLAG", "sauna-safety-line", safety["why"], safety["law"], safety["fix"]))
 
     # 8. Caption platform limits
-    caption = content.get("caption.txt", "")
+    caption = _caption(content)
     if caption:
         tags = re.findall(r"(?<![\w&])#[\w가-힣]+", caption)
         if len(tags) > MAX_HASHTAGS:
@@ -219,6 +226,19 @@ def check(content: dict, brand: str, meta: dict | None = None, paid: bool = Fals
         if SEVERITY_ORDER[h["severity"]] > SEVERITY_ORDER[verdict]:
             verdict = h["severity"]
     return {"verdict": verdict, "brand": brand, "hits": hits}
+
+
+def _caption(content: dict) -> str:
+    if content.get("caption.txt"):
+        return content["caption.txt"]
+    return next((d["caption"] for d in content.values() if isinstance(d, dict) and isinstance(d.get("caption"), str)), "")
+
+
+def _sentence(text, m):
+    seps = ".!?\n。"
+    start = max(text.rfind(c, 0, m.start()) for c in seps) + 1
+    ends = [i for i in (text.find(c, m.end()) for c in seps) if i != -1]
+    return text[start:min(ends) if ends else len(text)]
 
 
 def _first_slide_text(content: dict) -> str:
@@ -240,11 +260,15 @@ def _sibling_has(content: dict, path: str, rx: re.Pattern) -> bool:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("content", help="package dir, JSON/text file, or literal text")
-    ap.add_argument("--brand", required=True)
+    ap.add_argument("--brand", required=True, type=lambda v: v.strip().lower(), choices=sorted(BRANDS))
     ap.add_argument("--paid", action="store_true", help="paid / gifted / collab with compensation")
     args = ap.parse_args()
-    content, meta = load_package(args.content)
-    res = check(content, args.brand.lower(), meta, args.paid)
+    try:
+        content, meta = load_package(args.content)
+        res = check(content, args.brand, meta, args.paid)
+    except Exception as e:  # a crash must never look like PASS or FLAG
+        print(json.dumps({"verdict": "ERROR", "error": f"{type(e).__name__}: {e}"}, ensure_ascii=False))
+        return 3
     print(json.dumps(res, ensure_ascii=False, indent=1))
     return SEVERITY_ORDER[res["verdict"]]
 

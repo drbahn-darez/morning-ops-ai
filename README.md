@@ -65,7 +65,7 @@
 
 ## 테스트
 ```bash
-python3 -m unittest connectors/instagram-graph/test_ig_client.py
-python3 -m unittest tools/compliance/test_check.py
+python3 -m unittest connectors/instagram-graph/test_ig_client.py  # 32 tests
+python3 -m unittest tools/compliance/test_check.py      # 39 tests
 node tools/carousel/render.mjs tools/carousel/examples/ega-sample.json /tmp/ega
 ```

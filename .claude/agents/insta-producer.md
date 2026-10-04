@@ -22,7 +22,7 @@ model: inherit
 - `caption.txt` — 첫 줄 = 훅 재진술(125자 안에서 잘림 고려), 본문, CTA 1개, 해시태그 3~5개. 유료/협찬이면 첫머리에 공정위 표시 문구.
 - `alt.txt` — 접근성 대체 텍스트
 - `meta.json` — `{brand, date, pillar, format, hook_id, hypothesis, experiment, trial}` + 컴플라이언스 필드:
-  `product_category`(none/general_food/hff/functional_food/cosmetic/functional_cosmetic/sauna_service/auto_part/saas), `paid`·`gifted`·`employee_post`(무료 이용권·상품 포함), `review_id`, `evidence_ids`(수치·최상급 근거 파일 — 패키지 `evidence/`), `ai_assets`, `is_ai_generated`, `ai_persona_role`, `audio_source`·`audio_license_id`, `third_party_footage`·`footage_license_id`, `public_road_driving`, `competitor_named`, 릴스 협찬이면 `on_video_disclosure_start/end`
+  `product_category`(none/general_food/hff/functional_food/cosmetic/functional_cosmetic/sauna_service/auto_part/saas), `paid`·`gifted`·`employee_post`(무료 이용권·상품 포함), `review_id`, `evidence_ids`(수치·최상급 근거 파일 — 패키지 `evidence/`), `tuning_cert_id`(adro 튜닝부품 인증번호), `ai_assets`, `is_ai_generated`, `ai_persona_role`, `audio_source`·`audio_license_id`, `third_party_footage`·`footage_license_id`, `public_road_driving`, `competitor_named`, 릴스 협찬이면 `on_video_disclosure_start/end`
 - 릴스 커버: `cover.json` (`size: "9:16"`, `layout: "cover"`) → 렌더해 `cover_url`용 JPEG
 
 ## 품질 규칙

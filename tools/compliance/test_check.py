@@ -150,6 +150,87 @@ class MetaChecksTest(unittest.TestCase):
         self.assertTrue(rules_hit(res, "hashtag-cap"))
 
 
+class ReviewRegressionTest(unittest.TestCase):
+    """Cases from the adversarial review corpus (2026-10-04)."""
+
+    def v(self, text, brand, meta=None):
+        return check({"caption.txt": text}, brand, meta)["verdict"]
+
+    def test_disclaimer_does_not_cancel_violation_in_other_sentence(self):
+        self.assertEqual(self.v("브레인 사우나 90분, 불면증이 사라졌어요.\n※ 본 콘텐츠는 질병의 예방·치료를 목적으로 하지 않습니다.", "ega"), "REJECT")
+        self.assertEqual(self.v("본 제품은 건강기능식품이 아닙니다. 매일 아침 NMN 한 병으로 NAD+ 수치를 높이고 피로 회복까지.", "ega"), "REJECT")
+        self.assertEqual(self.v("디지털 디톡스와 NMN 드링크로 몸속 독소까지 비우는 하루", "ega"), "REJECT")
+
+    def test_ega_misses_now_caught(self):
+        for text in ["브레인 사우나 다녀오면 집중력이 확 올라가요. 임산부·음주 후 이용 자제, 어지러우면 바로 휴식하세요.",
+                     "한 번에 500칼로리 소모! 어지러우면 바로 휴식하세요.",
+                     "두통이 싹 사라졌어요 — 방문객 후기. 임산부·음주 후 이용 자제.",
+                     "약사님이 추천하는 NMN 핸드크림",
+                     "Boost your NAD+ levels and support cellular repair with our NMN ritual drink.",
+                     "NMN × RECOVERY",
+                     "손이 10년은 젊어 보여요. NMN 핸드크림"]:
+            self.assertEqual(self.v(text, "ega"), "REJECT", text)
+
+    def test_ega_safe_copy_not_rejected(self):
+        for text in ["냉탕 입수 전 체크리스트 고혈압·당뇨가 있다면 이용 전 전문의와 상의하세요. 어지러우면 바로 멈추세요.",
+                     "온탕과 냉탕 사이, 오늘의 리셋 루틴. 어지러우면 무조건 휴식하세요.",
+                     "20-30세 직장인 대상 NMN 핸드크림 샘플링 이벤트, 이번 주말 성수 팝업에서 만나요.",
+                     "오픈 첫 주, 단 2일 만에 10월 예약이 마감되었습니다.",
+                     "NMN 250mg 함유"]:
+            self.assertNotEqual(self.v(text, "ega"), "REJECT", text)
+
+    def test_safety_line_needs_real_advice(self):
+        self.assertEqual(self.v("냉탕 3분 챌린지 오늘 컨디션 리셋!", "ega"), "FLAG")
+        self.assertEqual(self.v("Hot 12 min, cold plunge 2 min. Skip it if you're pregnant or have a heart condition. Feeling dizzy? Rest.", "ega"), "PASS")
+
+    def test_recovery_ritual_as_drink_name_flagged(self):
+        res = check({"caption.txt": "Recovery Ritual — 운동 후 한 잔, 리추얼 드링크"}, "ega")
+        self.assertTrue(rules_hit(res, "recovery-ritual-drink"))
+
+    def test_negated_disclosure_rejected(self):
+        res = check({"caption.txt": "광고 아님! 내돈내산 브레인 사우나 후기. 임산부·음주 후 이용 자제."}, "ega", {"paid": True})
+        self.assertTrue(rules_hit(res, "missing-ad-disclosure"))
+        spec = {"slides": [{"layout": "cover", "eyebrow": "협찬·제휴 문의 DM", "title": "루틴"}]}
+        res2 = check({"carousel.json": spec, "caption.txt": "다녀왔어요"}, "ega", {"gifted": True})
+        self.assertTrue(rules_hit(res2, "missing-ad-disclosure"))
+
+    def test_adro_false_positives_gone(self):
+        for text in ["Orange weave, 3 finishes.", "Arrange a fitting: 2 bays open this Saturday.",
+                     "AOX beta: drag & drop up to 3 STL files.", "셀프 장착 가이드 3편", "LCD 계기판 커버 2종 출시",
+                     "주문 폭주로 2차 생산 들어갑니다.", "Build No. 14 delivered to Busan.", "신형 카본 디퓨저 최초 공개.",
+                     "Since the pandemic, our Seoul workshop has hand-laid 120 kits."]:
+            self.assertEqual(self.v(text, "adro"), "PASS", text)
+
+    def test_adro_misses_now_caught(self):
+        for text in ["AOX: 기존 CFD보다 10배 빠른 해석", "순정 대비 40% 가벼운 카본 후드",
+                     "단속에 안 걸리는 디자인. 구조변경 안 해도 됩니다.", "100% 합법, 불법 튜닝 아님.",
+                     "세계 최고 수준의 다운포스"]:
+            self.assertEqual(self.v(text, "adro"), "REJECT", text)
+
+    def test_dangerous_driving_not_downgraded_by_evidence(self):
+        meta = {"evidence_ids": ["evidence/aox-cfd.pdf"], "tuning_cert_id": "T-123"}
+        self.assertEqual(self.v("공도 레이스 OK, 칼치기에도 흔들림 없는 다운포스", "adro", meta), "REJECT")
+
+    def test_unknown_brand_raises(self):
+        with self.assertRaises(ValueError):
+            check({"caption.txt": "x"}, "ega ")
+
+    def test_long_literal_caption(self):
+        content, meta = load_package("가" * 120)
+        self.assertEqual(check(content, "ega", meta)["verdict"], "PASS")
+
+    def test_json_file_caption_is_read(self):
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
+            json.dump({"meta": {"paid": True}, "caption": "[광고] 다녀왔어요 #a #b #c #d #e #f"}, f, ensure_ascii=False)
+        try:
+            content, meta = load_package(f.name)
+            res = check(content, "ega", meta)
+        finally:
+            os.unlink(f.name)
+        self.assertFalse(rules_hit(res, "missing-ad-disclosure"))
+        self.assertTrue(rules_hit(res, "hashtag-cap"))
+
+
 class PackageModeTest(unittest.TestCase):
     def test_reads_package_dir(self):
         with tempfile.TemporaryDirectory() as d:
