@@ -1,0 +1,13 @@
+{
+  "id": "adro-sample-bumper-creases",
+  "brand": "adro",
+  "size": "4:5",
+  "footer": "AERO · CARBON · CFD",
+  "slides": [
+    { "layout": "cover", "eyebrow": "BMW M4 G82", "title": "Every crease on this bumper\nhas **a job.**", "sub": "Here are 3 — 범퍼의 선 하나하나에는 역할이 있다" },
+    { "layout": "text", "eyebrow": "01 · INTAKE", "title": "Air goes **where you invite it.**", "body": "냉각이 필요한 곳으로 공기를 모으는 입구 형상" },
+    { "layout": "text", "eyebrow": "02 · EDGE", "title": "A sharp edge decides **where air lets go.**", "body": "공기가 차체에서 떨어지는 지점을 정하는 날카로운 모서리" },
+    { "layout": "text", "eyebrow": "03 · CANARD", "title": "Small surface, **clear purpose.**", "body": "앞바퀴 주변 흐름을 정리하는 작은 날개" },
+    { "layout": "cta", "eyebrow": "AOX", "title": "See the air\nbefore you **cut carbon.**", "action": "Follow for the AOX launch" }
+  ]
+}

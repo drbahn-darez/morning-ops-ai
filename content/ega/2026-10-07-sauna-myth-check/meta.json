@@ -1,0 +1,86 @@
+{
+  "id": "2026-10-07-sauna-myth-check",
+  "brand": "ega",
+  "date": "2026-10-07",
+  "publish_at": "2026-10-07T19:30:00+09:00",
+  "pillar": "2",
+  "format": "CAROUSEL",
+  "size": "4:5",
+  "slides": 8,
+  "hook_id": "ega-h01",
+  "hypothesis": "A myth-check carousel with a save-worthy checklist earns more sends/saves per reach than our routine posts",
+  "experiment": "hook",
+  "experiment_variant": "myth_check",
+  "success_metrics": [
+    "saved/reach",
+    "shares/reach",
+    "views/reach"
+  ],
+  "trial": null,
+  "cta": "save",
+  "handle": null,
+  "product_category": "sauna_service",
+  "paid": false,
+  "gifted": false,
+  "employee_post": false,
+  "review_id": null,
+  "evidence_ids": [],
+  "tuning_cert_id": null,
+  "ai_assets": [],
+  "is_ai_generated": false,
+  "ai_persona_role": "none",
+  "audio_source": null,
+  "audio_license_id": null,
+  "third_party_footage": false,
+  "footage_license_id": null,
+  "public_road_driving": false,
+  "competitor_named": false,
+  "on_video_disclosure_start": null,
+  "on_video_disclosure_end": null,
+  "render": {
+    "spec": "carousel.json",
+    "out_dir": "out/",
+    "files": [
+      "out/ega-2026-10-07-sauna-myth-check_01.jpg",
+      "out/ega-2026-10-07-sauna-myth-check_02.jpg",
+      "out/ega-2026-10-07-sauna-myth-check_03.jpg",
+      "out/ega-2026-10-07-sauna-myth-check_04.jpg",
+      "out/ega-2026-10-07-sauna-myth-check_05.jpg",
+      "out/ega-2026-10-07-sauna-myth-check_06.jpg",
+      "out/ega-2026-10-07-sauna-myth-check_07.jpg",
+      "out/ega-2026-10-07-sauna-myth-check_08.jpg"
+    ],
+    "contact_sheet": "out/ega-2026-10-07-sauna-myth-check_sheet.png",
+    "warnings": [
+      "handle is empty — set \"handle\" in the spec (brand pack lists the real handle)"
+    ]
+  },
+  "compliance": {
+    "verdict": "PASS",
+    "checker": "tools/compliance/check.py (rules 2026-10-04)",
+    "checked_on": "2026-10-04",
+    "hits": []
+  },
+  "flags": [],
+  "status": "produced",
+  "location_name": "에가 브레인 사우나",
+  "location_id": null,
+  "todos": [
+    "인스타 핸들 확정 → carousel.json handle 추가 후 재렌더 (review FIX 5)",
+    "현장 스태프 안내와 문구 일치 확인: 냉탕 발끝부터 / 온·냉 사이 앉아서 쉬기 / 들어가기 전 수분 / 숨이 불편해지기 전에 나오기",
+    "위치 태그 '에가 브레인 사우나' location_id 확인"
+  ],
+  "review_round": {
+    "round": 1,
+    "verdict": "REVISE",
+    "fixes_applied": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "fixes_pending": {
+      "5": "handle 대기"
+    }
+  }
+}

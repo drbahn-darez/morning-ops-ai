@@ -1,0 +1,25 @@
+{
+  "enabledMcpjsonServers": ["instagram-graph"],
+  "permissions": {
+    "allow": [
+      "mcp__instagram-graph__ig_list_accounts",
+      "mcp__instagram-graph__ig_profile",
+      "mcp__instagram-graph__ig_list_media",
+      "mcp__instagram-graph__ig_media_insights",
+      "mcp__instagram-graph__ig_recent_performance",
+      "mcp__instagram-graph__ig_account_insights",
+      "mcp__instagram-graph__ig_competitor",
+      "mcp__instagram-graph__ig_hashtag_top_media",
+      "mcp__instagram-graph__ig_publishing_limit",
+      "mcp__instagram-graph__ig_container_status",
+      "Bash(node tools/carousel/render.mjs:*)",
+      "Bash(python3 tools/compliance/check.py:*)"
+    ],
+    "ask": [
+      "mcp__instagram-graph__ig_create_reel_container",
+      "mcp__instagram-graph__ig_create_carousel_container",
+      "mcp__instagram-graph__ig_publish",
+      "mcp__instagram-graph__ig_refresh_token"
+    ]
+  }
+}
