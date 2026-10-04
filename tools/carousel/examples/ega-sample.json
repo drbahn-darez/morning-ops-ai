@@ -1,0 +1,13 @@
+{
+  "id": "ega-sample-recovery-ritual",
+  "brand": "ega",
+  "size": "4:5",
+  "footer": "EGA Brain Sauna",
+  "slides": [
+    { "layout": "cover", "eyebrow": "Recovery Ritual", "title": "사우나, 처음이라면\n**순서**부터 다르게", "sub": "온탕과 냉탕 사이, 우리가 놓치는 한 가지" },
+    { "layout": "text", "eyebrow": "Step 01", "title": "먼저, 몸을 **데우는** 시간", "body": "처음에는 짧게 시작하세요.\n편안하게 호흡이 유지되는 만큼이 기준입니다." },
+    { "layout": "compare", "eyebrow": "Myth vs Routine", "title": "오래 버티는 게 핵심일까?", "left": {"label": "Myth", "text": "뜨거울수록, 오래 있을수록 좋다"}, "right": {"label": "Routine", "text": "내 컨디션에 맞춘 짧은 반복이 기본"} },
+    { "layout": "list", "eyebrow": "Checklist", "title": "입장 전 체크 3가지", "items": ["충분한 수분 섭취", "공복·과음 상태 피하기", "어지러우면 바로 휴식"], "disclaimer": "본 콘텐츠는 일반 정보이며 질병의 예방·치료를 목적으로 하지 않습니다. 건강 상태에 따라 전문가와 상담하세요." },
+    { "layout": "cta", "eyebrow": "Your Turn", "title": "오늘의 루틴,\n**저장**해 두세요", "action": "프로필 링크에서 예약" }
+  ]
+}

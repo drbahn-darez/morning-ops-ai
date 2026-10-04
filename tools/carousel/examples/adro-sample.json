@@ -1,0 +1,13 @@
+{
+  "id": "adro-sample-model-y-drag",
+  "brand": "adro",
+  "size": "4:5",
+  "footer": "AERO · CARBON · CFD",
+  "slides": [
+    { "layout": "cover", "eyebrow": "TESLA MODEL Y", "title": "바디킷 하나로\n공기저항 **15%**", "sub": "adro 자체 테스트 결과 — 어떻게 측정했나" },
+    { "layout": "stat", "eyebrow": "DRAG", "stat": "15", "unit": "%", "title": "공기저항 개선", "source": "adro 자체 전비 테스트 (Tesla Model Y)" },
+    { "layout": "stat", "eyebrow": "EFFICIENCY", "stat": "4.58", "unit": "%", "title": "전비 효율 개선", "source": "adro 자체 전비 테스트 (Tesla Model Y)" },
+    { "layout": "list", "eyebrow": "HOW", "title": "설계 3단계", "items": ["Area proposal — 드래그 발생 영역 탐지", "Guide proposal — 형상 수정 방향", "Design proposal — 최적 형상 후보"] },
+    { "layout": "cta", "eyebrow": "AOX", "title": "디자이너가 직접 쓰는\n**CFD**", "action": "11월 정식 출시 알림 받기" }
+  ]
+}
