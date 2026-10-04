@@ -9,6 +9,7 @@
 //   "brand": "ega" | "adro",
 //   "size": "4:5" (default) | "3:4" | "1:1",
 //   "handle": "@brand",                     // optional, overrides theme
+//   "format": "jpg" (default; the Instagram API accepts JPEG only) | "png",
 //   "slides": [
 //     { "layout": "cover",   "eyebrow": "Contrast Therapy", "title": "...", "sub": "...", "image": "assets/x.webp" },
 //     { "layout": "text",    "eyebrow": "...", "title": "...", "body": "..." },
@@ -250,8 +251,9 @@ export async function render(specPath, outDir) {
       fs.writeFileSync(htmlPath, pageHtml(spec, slides[i], i, slides.length, specDir));
       await page.goto(pathToFileURL(htmlPath).href, { waitUntil: 'networkidle' });
       await page.waitForSelector('body[data-ready="1"]', { timeout: 15000 });
-      const file = path.join(outDir, `${id}_${String(i + 1).padStart(2, '0')}.png`);
-      await page.screenshot({ path: file, clip: { x: 0, y: 0, width, height } });
+      const jpg = (spec.format || 'jpg') !== 'png';
+      const file = path.join(outDir, `${id}_${String(i + 1).padStart(2, '0')}.${jpg ? 'jpg' : 'png'}`);
+      await page.screenshot({ path: file, clip: { x: 0, y: 0, width, height }, ...(jpg ? { type: 'jpeg', quality: 92 } : {}) });
       if (!process.env.KEEP_HTML) fs.unlinkSync(htmlPath);
       files.push(file);
     }

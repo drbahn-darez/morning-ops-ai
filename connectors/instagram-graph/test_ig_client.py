@@ -18,6 +18,7 @@ from ig_client import (  # noqa: E402
     IGError,
     derive,
     load_accounts,
+    to_unix,
 )
 
 
@@ -56,22 +57,35 @@ class LoadAccountsTest(unittest.TestCase):
         })
         self.assertEqual(set(accts), {"ega", "adro"})
         self.assertEqual(accts["adro"].host, "facebook")
+        self.assertEqual(accts["ega"].host, "facebook")  # no IG prefix -> Facebook Login default
+
+    def test_host_detected_from_token(self):
+        accts = load_accounts({"IG_EGA_TOKEN": "IGAAxyz", "IG_ADRO_TOKEN": "EAAGxyz"})
         self.assertEqual(accts["ega"].host, "instagram")
+        self.assertEqual(accts["adro"].host, "facebook")
 
     def test_rejects_unknown_host(self):
         with self.assertRaises(IGError):
             load_accounts({"IG_EGA_TOKEN": "t", "IG_EGA_HOST": "tiktok"})
 
 
+class HelpersTest(unittest.TestCase):
+    def test_to_unix(self):
+        self.assertEqual(to_unix("2026-10-01"), 1790812800)
+        self.assertEqual(to_unix(1790812800), 1790812800)
+        self.assertEqual(to_unix("1790812800"), 1790812800)
+
+
 class DeriveTest(unittest.TestCase):
     def test_ratios_and_target(self):
         d = derive({"views": 120000, "reach": 80000, "shares": 1600, "saved": 800,
-                    "likes": 4000, "comments": 80, "ig_reels_avg_watch_time": 8450})
+                    "likes": 4000, "comments": 80, "ig_reels_avg_watch_time": 8450, "reels_skip_rate": 0.41})
         self.assertEqual(d["shares_per_reach"], 0.02)
         self.assertEqual(d["saves_per_reach"], 0.01)
         self.assertEqual(d["avg_watch_time_s"], 8.45)
         self.assertTrue(d["hit_100k"])
         self.assertEqual(d["views_per_reach"], 1.5)
+        self.assertEqual(d["skip_rate"], 0.41)
 
     def test_zero_reach_is_skipped(self):
         d = derive({"views": 10, "reach": 0, "shares": 1})
@@ -192,18 +206,37 @@ class PublishTest(unittest.TestCase):
     def test_carousel_builds_children_then_parent(self):
         counter = iter(["k1", "k2", "k3", "p1"])
         c, api = make_client({("POST", "/1789/media"): lambda p, f: {"id": next(counter)}})
-        res = c.create_carousel("ega", "cap", [{"image_url": "https://x/1.png"},
-                                               {"image_url": "https://x/2.png"},
-                                               {"video_url": "https://x/3.mp4"}])
+        res = c.create_carousel("ega", "cap", [{"image_url": "https://x/1.jpg", "alt_text": "slide one"},
+                                               {"image_url": "https://x/2.jpeg"},
+                                               {"video_url": "https://x/3.mp4"}], is_ai_generated=True)
         self.assertEqual(res["children"], ["k1", "k2", "k3"])
         self.assertEqual(api.calls[2]["form"]["media_type"], "VIDEO")
         self.assertEqual(api.calls[3]["form"]["children"], "k1,k2,k3")
         self.assertEqual(api.calls[3]["form"]["media_type"], "CAROUSEL")
+        self.assertEqual(api.calls[0]["form"]["alt_text"], "slide one")
+        self.assertEqual(api.calls[3]["form"]["is_ai_generated"], "true")
+        self.assertNotIn("is_ai_generated", api.calls[0]["form"])
 
     def test_carousel_bounds(self):
         c, _ = make_client({})
         with self.assertRaises(IGError):
-            c.create_carousel("ega", "cap", [{"image_url": "https://x/1.png"}])
+            c.create_carousel("ega", "cap", [{"image_url": "https://x/1.jpg"}])
+        with self.assertRaises(IGError):
+            c.create_carousel("ega", "cap", [{"image_url": f"https://x/{i}.jpg"} for i in range(11)])
+
+    def test_carousel_rejects_png(self):
+        c, api = make_client({})
+        with self.assertRaises(IGError) as ctx:
+            c.create_carousel("ega", "cap", [{"image_url": "https://x/1.png"}, {"image_url": "https://x/2.jpg"}])
+        self.assertIn("JPEG", str(ctx.exception))
+        self.assertEqual(api.calls, [])
+
+    def test_hashtag_cap(self):
+        c, api = make_client({})
+        with self.assertRaises(IGError) as ctx:
+            c.create_reel("ega", "훅 #사우나 #냉탕 #회복 #루틴 #웰니스 #서울", video_url="https://a/v.mp4")
+        self.assertIn("5", str(ctx.exception))
+        self.assertEqual(api.calls, [])
 
     def test_publish_is_dry_run_when_disabled(self):
         c, api = make_client({}, publish=False)

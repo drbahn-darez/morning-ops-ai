@@ -8,9 +8,12 @@ Brands are configured through environment variables, one set per brand:
 
     IG_<BRAND>_TOKEN     long-lived access token (required)
     IG_<BRAND>_USER_ID   Instagram professional account ID (required)
-    IG_<BRAND>_HOST      "instagram" (graph.instagram.com, Instagram Login)
-                         or "facebook" (graph.facebook.com, Facebook Login).
-                         Default: instagram. Competitor/hashtag tools need facebook.
+    IG_<BRAND>_HOST      "facebook" (graph.facebook.com, Facebook Login for Business;
+                         recommended: Business Discovery, Hashtag Search, documented
+                         resumable upload, non-expiring system-user tokens) or
+                         "instagram" (graph.instagram.com, Instagram Login).
+                         Default: detected from the token (Instagram Login tokens
+                         start with "IG"), else facebook.
 
 Global:
     IG_API_VERSION       Graph API version, default DEFAULT_API_VERSION
@@ -19,6 +22,7 @@ Global:
 
 from __future__ import annotations
 
+import datetime as dt
 import json
 import os
 import re
@@ -29,7 +33,7 @@ import urllib.request
 from dataclasses import dataclass
 from typing import Any, Callable
 
-DEFAULT_API_VERSION = "v24.0"
+DEFAULT_API_VERSION = "v26.0"  # released 2026-07-29
 
 HOSTS = {
     "instagram": "https://graph.instagram.com",
@@ -37,7 +41,9 @@ HOSTS = {
 }
 RUPLOAD_HOST = "https://rupload.facebook.com"
 
-# Per-media insights metrics. `views` replaced plays/impressions/video_views in 2025.
+# Per-media insights metrics. `views` replaced plays/impressions/clips_replays_count
+# (v22.0+ from 2025-01-21, all versions from 2025-04-21). reels_skip_rate and reposts
+# were added in Dec 2025; metrics an account/version does not support are skipped.
 REEL_METRICS = [
     "views",
     "reach",
@@ -48,7 +54,12 @@ REEL_METRICS = [
     "total_interactions",
     "ig_reels_avg_watch_time",
     "ig_reels_video_view_total_time",
+    "reels_skip_rate",
+    "reposts",
+    "crossposted_views",
+    "facebook_views",
 ]
+# follows / profile_visits / profile_activity are FEED-only; requesting them on a Reel is error 100.
 FEED_METRICS = [
     "views",
     "reach",
@@ -59,6 +70,7 @@ FEED_METRICS = [
     "total_interactions",
     "profile_visits",
     "follows",
+    "reposts",
 ]
 ACCOUNT_METRICS = [
     "reach",
@@ -77,6 +89,9 @@ DISCOVERY_MEDIA_FIELDS = (
 )
 
 VIEWS_TARGET = 100_000
+MAX_HASHTAGS = 5  # Instagram cap since Dec 2025 (API docs still say 30)
+MAX_CAPTION = 2200
+CAROUSEL_MIN, CAROUSEL_MAX = 2, 10  # API limit; the app allows 20
 
 Transport = Callable[[str, str, dict | None, bytes | None, dict | None], dict]
 
@@ -115,7 +130,8 @@ def load_accounts(env: dict | None = None) -> dict[str, Account]:
             continue
         brand = m.group(1).lower()
         user_id = env.get(f"IG_{m.group(1)}_USER_ID", "")
-        host = env.get(f"IG_{m.group(1)}_HOST", "instagram").lower()
+        default_host = "instagram" if value.startswith("IG") else "facebook"
+        host = env.get(f"IG_{m.group(1)}_HOST", default_host).lower()
         if host not in HOSTS:
             raise IGError(f"IG_{m.group(1)}_HOST must be one of {sorted(HOSTS)}, got {host!r}")
         accounts[brand] = Account(brand=brand, token=value, user_id=user_id, host=host)
@@ -150,6 +166,21 @@ def urllib_transport(method: str, url: str, params: dict | None, body: bytes | N
     return json.loads(raw or b"{}")
 
 
+def validate_caption(caption: str) -> None:
+    if len(caption) > MAX_CAPTION:
+        raise IGError(f"Caption is {len(caption)} chars; the limit is {MAX_CAPTION}.")
+    tags = re.findall(r"(?<![\w&])#[\w가-힣]+", caption)
+    if len(tags) > MAX_HASHTAGS:
+        raise IGError(f"Caption has {len(tags)} hashtags; Instagram allows {MAX_HASHTAGS} per post since Dec 2025.")
+
+
+def to_unix(value: str | int) -> int:
+    """Accept unix seconds or YYYY-MM-DD (interpreted as UTC midnight)."""
+    if isinstance(value, int) or str(value).isdigit():
+        return int(value)
+    return int(dt.datetime.strptime(str(value), "%Y-%m-%d").replace(tzinfo=dt.timezone.utc).timestamp())
+
+
 def _ratio(num: Any, den: Any) -> float | None:
     try:
         return round(float(num) / float(den), 4) if den else None
@@ -167,6 +198,10 @@ def derive(insights: dict[str, Any]) -> dict[str, Any]:
         "comments_per_reach": _ratio(insights.get("comments"), reach),
         "views_per_reach": _ratio(insights.get("views"), reach),
     }
+    skip = insights.get("reels_skip_rate")
+    if skip is not None:
+        # Share of views that left within the first 3 seconds (hook failure rate).
+        out["skip_rate"] = skip
     avg_ms = insights.get("ig_reels_avg_watch_time")
     if avg_ms is not None:
         out["avg_watch_time_s"] = round(float(avg_ms) / 1000, 2)
@@ -311,8 +346,8 @@ class IGClient:
         params: dict[str, Any] = {
             "metric": ",".join(metrics or ACCOUNT_METRICS),
             "period": period,
-            "since": since,
-            "until": until,
+            "since": to_unix(since),
+            "until": to_unix(until),
         }
         if metric_type:
             params["metric_type"] = metric_type
@@ -402,10 +437,12 @@ class IGClient:
     def create_reel(self, brand: str, caption: str, video_url: str | None = None, video_path: str | None = None,
                     cover_url: str | None = None, thumb_offset_ms: int | None = None, share_to_feed: bool = True,
                     collaborators: list[str] | None = None, audio_name: str | None = None,
-                    trial_graduation: str | None = None) -> dict:
+                    trial_graduation: str | None = None, is_ai_generated: bool = False,
+                    is_paid_partnership: bool = False) -> dict:
         acct = self.account(brand)
         if bool(video_url) == bool(video_path):
             raise IGError("Pass exactly one of video_url (public URL) or video_path (local file).")
+        validate_caption(caption)
         params: dict[str, Any] = {"media_type": "REELS", "caption": caption, "share_to_feed": str(share_to_feed).lower()}
         if video_url:
             params["video_url"] = video_url
@@ -425,25 +462,40 @@ class IGClient:
             if trial_graduation not in ("MANUAL", "SS_PERFORMANCE"):
                 raise IGError("trial_graduation must be MANUAL or SS_PERFORMANCE")
             params["trial_params"] = json.dumps({"graduation_strategy": trial_graduation})
+        if is_ai_generated:
+            params["is_ai_generated"] = "true"
+        if is_paid_partnership:
+            params["is_paid_partnership"] = "true"
         created = self._call(acct, "POST", f"{acct.user_id}/media", params)
         container_id = created.get("id")
         if video_path:
-            upload = self._upload_local_video(acct, container_id, video_path)
+            try:
+                upload = self._upload_local_video(acct, container_id, video_path)
+            except IGError as e:
+                hint = (" Resumable upload is documented for Facebook Login; with an Instagram Login token "
+                        "pass a public video_url instead.") if acct.host == "instagram" else ""
+                raise IGError(f"Video upload failed: {e}.{hint}", e.code, e.subcode) from None
             if not upload.get("success", True):
                 raise IGError(f"Video upload failed: {upload}")
         return {"container_id": container_id, "status": "uploaded", "published": False,
                 "next": "poll ig_container_status until FINISHED, then ig_publish after human approval"}
 
     def create_carousel(self, brand: str, caption: str, items: list[dict],
-                        collaborators: list[str] | None = None) -> dict:
+                        collaborators: list[str] | None = None, is_ai_generated: bool = False,
+                        is_paid_partnership: bool = False) -> dict:
         acct = self.account(brand)
-        if not 2 <= len(items) <= 20:
-            raise IGError("A carousel needs 2 to 20 items.")
+        if not CAROUSEL_MIN <= len(items) <= CAROUSEL_MAX:
+            raise IGError(f"An API carousel needs {CAROUSEL_MIN} to {CAROUSEL_MAX} items (the app allows 20).")
+        validate_caption(caption)
         children = []
         for i, item in enumerate(items):
             params: dict[str, Any] = {"is_carousel_item": "true"}
             if item.get("image_url"):
+                if not re.search(r"\.jpe?g($|\?)", item["image_url"], re.IGNORECASE):
+                    raise IGError(f"Item {i}: the API accepts JPEG images only (sRGB, max 8 MB). Render with format jpg.")
                 params["image_url"] = item["image_url"]
+                if item.get("alt_text"):
+                    params["alt_text"] = item["alt_text"][:1000]
             elif item.get("video_url"):
                 params.update(media_type="VIDEO", video_url=item["video_url"])
             else:
@@ -452,6 +504,10 @@ class IGClient:
         params = {"media_type": "CAROUSEL", "children": ",".join(children), "caption": caption}
         if collaborators:
             params["collaborators"] = json.dumps(collaborators[:3])
+        if is_ai_generated:
+            params["is_ai_generated"] = "true"
+        if is_paid_partnership:
+            params["is_paid_partnership"] = "true"
         parent = self._call(acct, "POST", f"{acct.user_id}/media", params)
         return {"container_id": parent.get("id"), "children": children, "published": False,
                 "next": "poll ig_container_status until FINISHED, then ig_publish after human approval"}
@@ -460,7 +516,8 @@ class IGClient:
         acct = self.account(brand)
         return self._call(acct, "GET", container_id, {"fields": "id,status_code,status"})
 
-    def wait_until_ready(self, brand: str, container_id: str, timeout_s: int = 300, every_s: int = 10) -> dict:
+    def wait_until_ready(self, brand: str, container_id: str, timeout_s: int = 300, every_s: int = 60) -> dict:
+        # Meta guidance: poll once per minute for no more than 5 minutes. Containers expire after 24h.
         waited = 0
         while True:
             st = self.container_status(brand, container_id)

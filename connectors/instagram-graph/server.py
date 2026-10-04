@@ -74,7 +74,8 @@ def ig_recent_performance(brand: str, limit: int = 20, since_days: int | None = 
 def ig_account_insights(brand: str, since: str, until: str, metrics: list[str] | None = None,
                         period: str = "day", metric_type: str = "total_value", breakdown: str | None = None) -> str:
     """Account-level insights between since/until (YYYY-MM-DD or unix time). Defaults: reach, views, accounts_engaged,
-    total_interactions, profile_links_taps with metric_type=total_value. Use breakdown (e.g. follow_type, media_product_type) where supported."""
+    total_interactions, profile_links_taps with metric_type=total_value. For non-follower reach (the main lever for 100K
+    views) call metrics=["reach"], breakdown="follow_type". Account metrics are kept only 90 days — snapshot them."""
     return _run(client().account_insights, brand, since, until, metrics, period, metric_type, breakdown)
 
 
@@ -101,25 +102,29 @@ def ig_publishing_limit(brand: str) -> str:
 def ig_create_reel_container(brand: str, caption: str, video_url: str | None = None, video_path: str | None = None,
                              cover_url: str | None = None, thumb_offset_ms: int | None = None,
                              share_to_feed: bool = True, collaborators: list[str] | None = None,
-                             audio_name: str | None = None, trial_graduation: str | None = None) -> str:
-    """Upload a Reel into a PRIVATE container (nothing is posted). Give either a public video_url or a local video_path
-    (uploaded with resumable upload). trial_graduation=MANUAL or SS_PERFORMANCE makes it a Trial Reel shown to non-followers first.
-    Returns container_id for ig_container_status / ig_publish."""
+                             audio_name: str | None = None, trial_graduation: str | None = None,
+                             is_ai_generated: bool = False, is_paid_partnership: bool = False) -> str:
+    """Upload a Reel into a PRIVATE container (nothing is posted; containers expire after 24h). Give either a public
+    video_url or a local video_path (resumable upload; documented for Facebook Login). trial_graduation=MANUAL or
+    SS_PERFORMANCE makes it a Trial Reel shown to non-followers first. Set is_ai_generated for AI imagery and
+    is_paid_partnership for paid collabs. Max 5 hashtags, 2,200 chars. Returns container_id."""
     return _run(client().create_reel, brand, caption, video_url, video_path, cover_url, thumb_offset_ms,
-                share_to_feed, collaborators, audio_name, trial_graduation)
+                share_to_feed, collaborators, audio_name, trial_graduation, is_ai_generated, is_paid_partnership)
 
 
 @mcp.tool()
 def ig_create_carousel_container(brand: str, caption: str, items: list[dict],
-                                 collaborators: list[str] | None = None) -> str:
-    """Create a PRIVATE carousel container from 2-20 items, each {"image_url": ...} or {"video_url": ...} (public URLs).
-    Nothing is posted. Returns container_id."""
-    return _run(client().create_carousel, brand, caption, items, collaborators)
+                                 collaborators: list[str] | None = None, is_ai_generated: bool = False,
+                                 is_paid_partnership: bool = False) -> str:
+    """Create a PRIVATE carousel container from 2-10 items (API limit), each {"image_url": "<public .jpg>", "alt_text": ...}
+    or {"video_url": ...}. Images must be JPEG, sRGB, <= 8 MB. Nothing is posted. Returns container_id."""
+    return _run(client().create_carousel, brand, caption, items, collaborators, is_ai_generated, is_paid_partnership)
 
 
 @mcp.tool()
 def ig_container_status(brand: str, container_id: str, wait: bool = False) -> str:
-    """Processing status of a container: IN_PROGRESS, FINISHED, ERROR, EXPIRED or PUBLISHED. wait=true polls up to 5 minutes."""
+    """Processing status of a container: IN_PROGRESS, FINISHED, ERROR, EXPIRED or PUBLISHED. wait=true polls once a minute
+    for up to 5 minutes (Meta guidance)."""
     c = client()
     return _run(c.wait_until_ready if wait else c.container_status, brand, container_id)
 
