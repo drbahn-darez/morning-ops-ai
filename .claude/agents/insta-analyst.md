@@ -23,7 +23,7 @@ model: inherit
 4. 결론: "훅 문제 / 페이오프 문제 / 주제 문제 / 배포 문제" 중 하나로 분류하고 근거 숫자 2개
 
 ## 갱신 (매 분석마다)
-- `data/insta/content-log.jsonl`: 해당 게시물 행에 `metrics_<24h|72h|7d>` 스냅샷과 `diagnosis` 추가 (media_id로 매칭, 없으면 새 행)
+- `data/insta/content-log.jsonl`: 해당 패키지 행의 `snapshots`에 `{measured_at, age_hours, ...지표}` 추가, `diagnosis` 갱신. media_id → permalink → 캡션 첫 줄·게시일 순으로 매칭하고, 매칭 안 되면 사람에게 묻는다(hook_id 없는 새 행을 만들지 않는다)
 - `data/insta/hooks.json`: hook_id별 uses, total_views, best_views, hits_100k 갱신
 - Kill/Scale: playbook.md 규칙대로 "재활용(remix) 후보", "포맷 전환 후보(릴스→캐러셀 등)", "중단 패턴"을 표시
 

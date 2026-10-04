@@ -1,5 +1,5 @@
 {
- "_schema": "hook library; insta-analyst updates uses/total_views/best_views/hits_100k/last_used/media_ids after each analysis. Add new hooks with the next id per brand.",
+ "_schema": "hook library. status: active | hold (never plan a hold hook). insta-analyst updates uses/total_views/best_views/hits_100k/last_used/media_ids after each analysis. Add new hooks with the next id per brand.",
  "hooks": [
   {
    "id": "ega-h01",
@@ -12,7 +12,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "ega-h02",
@@ -25,7 +26,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "ega-h03",
@@ -38,7 +40,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "ega-h04",
@@ -51,7 +54,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "ega-h05",
@@ -64,7 +68,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "ega-h06",
@@ -77,7 +82,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "ega-h07",
@@ -90,7 +96,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "ega-h08",
@@ -103,7 +110,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "ega-h09",
@@ -116,7 +124,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "ega-h10",
@@ -129,7 +138,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "ega-h11",
@@ -142,7 +152,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "ega-h12",
@@ -155,7 +166,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "ega-h13",
@@ -168,7 +180,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "ega-h14",
@@ -181,7 +194,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "ega-h15",
@@ -194,7 +208,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "ega-h16",
@@ -207,7 +222,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "ega-h17",
@@ -220,7 +236,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "ega-h18",
@@ -233,7 +250,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "ega-h19",
@@ -246,7 +264,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "ega-h20",
@@ -259,21 +278,23 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "adro-h01",
    "brand": "adro",
    "eyebrow": "",
    "headline": "This kit cut drag 15% on a Tesla Model Y. Here's where the air was going.",
-   "note": "모델 Y 공기저항 15%, 어디서 줄었을까 (adro 자체 테스트 표기)",
+   "note": "실증·법무 확인 전 보류 (공정위 실증 고시 2026-15)",
    "pillar": "1",
    "uses": 0,
    "total_views": 0,
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "hold"
   },
   {
    "id": "adro-h02",
@@ -287,21 +308,23 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "adro-h03",
    "brand": "adro",
    "eyebrow": "",
    "headline": "Same car. Same track. One difference.",
-   "note": "GT3 랩 수치 공개 승인 후에만",
+   "note": "GT3 랩 수치 공개 승인 전 보류",
    "pillar": "3",
    "uses": 0,
    "total_views": 0,
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "hold"
   },
   {
    "id": "adro-h04",
@@ -315,7 +338,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "adro-h05",
@@ -329,7 +353,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "adro-h06",
@@ -343,7 +368,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "adro-h07",
@@ -357,7 +383,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "adro-h08",
@@ -371,7 +398,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "adro-h09",
@@ -385,7 +413,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "adro-h10",
@@ -399,7 +428,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "adro-h11",
@@ -413,35 +443,38 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "adro-h12",
    "brand": "adro",
    "eyebrow": "",
    "headline": "POV: picking up your M4 after a full adro kit.",
-   "note": "오너 동의",
+   "note": "오너 동의 확인 후 사용",
    "pillar": "3",
    "uses": 0,
    "total_views": 0,
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "adro-h13",
    "brand": "adro",
    "eyebrow": "",
    "headline": "He drove it at Cadwell. His first words:",
-   "note": "Liam 동의 필요",
+   "note": "Cadwell 드라이버(Liam) 초상·사용 동의 확인 전 보류",
    "pillar": "4",
    "uses": 0,
    "total_views": 0,
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "hold"
   },
   {
    "id": "adro-h14",
@@ -455,7 +488,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "adro-h15",
@@ -469,7 +503,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "adro-h16",
@@ -483,7 +518,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "adro-h17",
@@ -497,7 +533,8 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "adro-h18",
@@ -511,35 +548,38 @@
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "active"
   },
   {
    "id": "adro-h19",
    "brand": "adro",
    "eyebrow": "",
    "headline": "What does 15% less drag actually mean on a road trip?",
-   "note": "4.58% 전비만 근거, 주행거리 환산은 실측 시에만",
+   "note": "보류 — 효율·주행거리 환산은 독립 시험기관 실차 시험 필요",
    "pillar": "1",
    "uses": 0,
    "total_views": 0,
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "hold"
   },
   {
    "id": "adro-h20",
    "brand": "adro",
    "eyebrow": "",
    "headline": "Top Gear asked one question: does it actually work?",
-   "note": "BBC 승인·엠바고 해제 후에만",
+   "note": "BBC/Top Gear 승인·엠바고 해제 전 보류",
    "pillar": "5",
    "uses": 0,
    "total_views": 0,
    "best_views": 0,
    "hits_100k": 0,
    "last_used": null,
-   "media_ids": []
+   "media_ids": [],
+   "status": "hold"
   }
  ]
 }

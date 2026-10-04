@@ -36,10 +36,10 @@
 - **adro**: 프로필 방문, 웹사이트 클릭, AOX 출시 알림/가입 중 인스타 유입(UTM), 해외(영문) 댓글·DM 비중.
 
 ## 데이터 연결 방법
-1. **instagram-graph 커넥터 (권장, 게시까지 가능)**
-   - Meta 개발자 앱 → Instagram 제품 → "Instagram 로그인을 사용한 API 설정" → 비즈니스/크리에이터 계정 연결 → 장기 토큰(60일) 발급
-   - 클라우드 환경 설정 → 환경 변수 `IG_EGA_TOKEN`, `IG_EGA_USER_ID` (adro는 `IG_ADRO_…`) 추가
-   - 네트워크 허용 도메인: `graph.instagram.com`, `graph.facebook.com`, `rupload.facebook.com`
-   - 경쟁 계정·해시태그 조회가 필요하면 Facebook 로그인 경로 토큰 + `IG_<BRAND>_HOST=facebook`
-   - 상세: `connectors/instagram-graph/README.md`
-2. **Supermetrics (분석만, 바로 가능)** — claude.ai에 이미 연결된 Supermetrics에서 Instagram Insights(IGI)·Instagram Public Data(IGPD2) 로그인. 2026-04부터 스킵률·리포스트 지원 [2차 보도].
+1. **Supermetrics (분석만, 지금 바로)** — claude.ai에 연결된 Supermetrics에서 Instagram Insights(IGI) 로그인, 경쟁 계정·해시태그는 Instagram Public Data(IGPD2) 로그인. 스킵률·리포스트 지원 [2차 보도].
+2. **instagram-graph 커넥터 (성과 + 경쟁 + 게시)** — 상세 절차는 `connectors/instagram-graph/README.md`. 요약:
+   - **기본 경로: Facebook Login for Business** (graph.facebook.com). 인스타 프로페셔널 계정을 페이지에 연결 → 비즈니스 설정의 **시스템 사용자 토큰**(만료 없음 가능) → Business Discovery(경쟁 계정)·해시태그 검색·로컬 영상 업로드까지 가능
+   - 대안: Instagram Login (graph.instagram.com, 60일 토큰) — 경쟁 계정·해시태그 조회 불가, 로컬 영상 업로드 미확정(공개 URL 사용)
+   - 클라우드 환경 변수: `IG_EGA_TOKEN`, `IG_EGA_USER_ID`, `IG_ADRO_TOKEN`, `IG_ADRO_USER_ID` (채팅에 토큰을 붙여넣지 않는다)
+   - 네트워크 허용 도메인: `graph.facebook.com`, `graph.instagram.com`, `rupload.facebook.com`
+   - 게시까지 허용할 때만 `IG_PUBLISH_ENABLED=1` (그래도 매번 사람 확인)

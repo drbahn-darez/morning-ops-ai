@@ -7,7 +7,7 @@
 | 항목 | 규격 | 근거 |
 |---|---|---|
 | 해상도 | **1080×1920 (9:16)** | API 권장 |
-| 길이 | **20~60초 기본**, 10만 도전작도 **최대 90초**, 180초 초과 금지 (3분 초과 비팔로워 추천 제외 — [공식 보도, 1차 페이지 재확인 필요]). API 허용 3초~15분 | [벤더] Socialinsider 2026 H1 도달률 30~60초 최고 |
+| 길이 | **20~60초 기본**, 10만 도전작도 **최대 90초**, 180초 초과 금지 (3분 초과 비팔로워 추천 제외 — [미검증]). API 허용 3초~15분 | [벤더] Socialinsider 2026 H1 도달률 30~60초 최고 |
 | 코덱 | H.264 High, yuv420p, progressive, 30fps CFR, closed GOP, VBR ≤ 25Mbps / AAC-LC 48kHz 스테레오 128k | API 스펙 |
 | 파일 | MP4, moov atom 선두(+faststart), **edit list 없음**, 300MB 이하 | API 스펙 ("no edit lists") |
 | 정규화 | `tools/reels/prepare.sh in.mp4 [out.mp4] [crop\|pad]` — 기본 crop(검은 여백보다 크롭) | |

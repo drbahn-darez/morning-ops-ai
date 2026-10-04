@@ -24,12 +24,12 @@ description: |
 | 구성 | 위치 | 역할 |
 |---|---|---|
 | 전략가 | `.claude/agents/insta-strategist.md` | 주간 브리프 5~7개 (가설·훅·실험 변수) |
-| 제작자 | `.claude/agents/insta-producer.md` | 브리프 → 캐러셀 PNG / 릴스 스크립트·샷리스트 / 캡션 패키지 |
+| 제작자 | `.claude/agents/insta-producer.md` | 브리프 → 캐러셀 JPEG / 릴스 스크립트·샷리스트·커버 / 캡션 패키지 |
 | 검수자 | `.claude/agents/insta-reviewer.md` | 훅·가독성·브랜드·규제 채점 → APPROVE/REVISE/REJECT |
-| 분석가 | `.claude/agents/insta-analyst.md` | 24h/72h/7d 진단, 훅 리더보드, Kill/Scale |
+| 분석가 | `.claude/agents/insta-analyst.md` | 게시 후 시점별 스냅샷 진단, 훅 리더보드, Kill/Scale |
 | 커넥터 | `connectors/instagram-graph/` (MCP `instagram-graph`) | 성과 조회, 경쟁 계정, 컨테이너 업로드, 게이트된 게시 |
 | 보조 데이터 | Supermetrics `instagram_insights` (IGI / IGPD2) | 커넥터 토큰이 없을 때 분석 대체 |
-| 렌더러 | `tools/carousel/render.mjs` | 캐러셀 스펙 JSON → 1080×1350 PNG + 콘택트시트 |
+| 렌더러 | `tools/carousel/render.mjs` | 캐러셀 스펙 JSON → 1080×1350 JPEG + PNG 콘택트시트, 9:16 릴스 커버 |
 | 규제 게이트 | `tools/compliance/check.py` + `rules.json` | REJECT/FLAG 자동 판정 |
 | 기록 | `data/insta/content-log.jsonl`, `data/insta/hooks.json` | 게시물·훅 성과 누적 → 학습 루프 |
 | EGA 릴스 렌더 | `ega-shorts` 스킬 | 정보형 릴스(9:16) 제작 파이프라인 재사용 |
@@ -54,12 +54,13 @@ description: |
 
 ## 게시 절차 (PUBLISH) — 사람 승인 없이는 절대 게시하지 않는다
 1. 패키지의 `review.md`가 `APPROVE`인지 확인. 아니면 중단.
-2. 사람에게 최종 확인 요청: 첫 장/커버 이미지, 캡션 전문, 게시 시간, Trial 여부를 보여준다.
+2. 사람에게 최종 확인 요청: 첫 장/커버 이미지, 캡션 전문, 게시 시간, **컴플라이언스 FLAG 사유 전부**(review.md의 FLAGS), Trial 여부와 **졸업 방식**을 보여준다. Trial 기본값은 `MANUAL`(72시간 후 사람이 앱에서 팔로워 공유 결정). `SS_PERFORMANCE`(인스타가 자동 공유)는 사람이 명시적으로 고른 경우에만.
 3. 사람이 명시적으로 승인한 경우에만:
    - 릴스: `ig_create_reel_container`(로컬 파일이면 `video_path`; Trial이면 `trial_graduation`) → `ig_container_status(wait=true)` → `ig_publish(human_approval="<사람의 승인 문구>")`
    - 캐러셀: 이미지가 공개 URL이어야 한다(API 제약). URL이 없으면 사람에게 앱에서 직접 올리도록 패키지 경로를 주고 종료.
-4. 게시 후 `data/insta/content-log.jsonl`에 `media_id`, `permalink`, `published_at`, `hook_id`, `hypothesis` 기록.
-5. `IG_PUBLISH_ENABLED`가 꺼져 있으면 dry run 결과를 그대로 보고하고, 앱 수동 게시 안내로 마무리.
+4. 게시 후 `data/insta/content-log.jsonl`의 패키지 행(제작 시 producer가 만든 `status: produced` 행)에 `media_id`, `permalink`, `published_at`, `status: published` 기록. 앱에서 수동 게시했다면 사람에게 permalink를 물어 같은 행에 기록한다.
+5. 시점별 진단 예약: 세션에서 `send_later`(claude-code-remote)를 쓸 수 있으면 게시 +24h, +72h에 "insta-analyst로 <media_id> 진단" 메시지를 예약한다. 없으면 주간 루틴이 측정 시점의 게시 경과 시간(`age_hours`)과 함께 기록한다.
+6. `IG_PUBLISH_ENABLED`가 꺼져 있으면 dry run 결과를 그대로 보고하고, 앱 수동 게시 안내 + permalink 기록 요청으로 마무리.
 
 ## 데이터가 없을 때
 - instagram-graph 토큰이 없으면 Supermetrics(IGI)로, 그것도 미인증이면 **숫자를 만들지 말고** 연결 방법만 안내한다 (`references/kpi.md` 하단).

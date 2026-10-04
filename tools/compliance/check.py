@@ -208,7 +208,9 @@ def check(content: dict, brand: str, meta: dict | None = None, paid: bool = Fals
     # 7. Sauna safety line (EGA)
     safety = rules.get("safety_line")
     if safety and brand in safety.get("brands", [brand]):
-        if re.search(safety["when_text"], all_text, re.IGNORECASE) and not re.search(safety["pattern"], all_text):
+        # Hashtags (#에가브레인사우나 on every post) don't make a post about heat/cold exposure.
+        body = re.sub(r"#\S+", "", all_text)
+        if re.search(safety["when_text"], body, re.IGNORECASE) and not re.search(safety["pattern"], all_text, re.IGNORECASE):
             hits.append(_hit("FLAG", "sauna-safety-line", safety["why"], safety["law"], safety["fix"]))
 
     # 8. Caption platform limits

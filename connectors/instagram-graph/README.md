@@ -65,14 +65,14 @@
 - `ig_publish`: 환경 변수 `IG_PUBLISH_ENABLED=1`이 아니면 dry run. 게다가 `.claude/settings.json`에서 `ask` 권한이라 매번 사람 확인을 받습니다. 컨테이너가 `FINISHED`가 아니면 거부합니다.
 - 캡션: 2,200자, **해시태그 5개 초과 시 거부**(2025-12 인스타 정책; API 문서는 아직 30개라고 함).
 - 캐러셀: API는 **2~10장**(앱은 20장), **JPEG만**(sRGB, 8MB 이하, 4:5~1.91:1). 렌더러 기본 출력이 JPEG입니다.
-- 릴스: MP4/MOV, H.264/HEVC, AAC 48kHz, 3초~15분, 300MB 이하, moov atom 선두 → `tools/reels/prepare.sh`로 정규화. **3분 초과는 비팔로워 추천 제외.**
+- 릴스: MP4/MOV, H.264/HEVC, AAC 48kHz, 3초~15분, 300MB 이하, moov atom 선두, edit list 없음 → `tools/reels/prepare.sh`로 정규화. 운영 기본 20~60초 (3분 초과 비팔로워 추천 제외는 [미검증]).
 
 ## 지표 메모
 - 릴스 유효 지표: views, reach, likes, comments, shares, saved, total_interactions, ig_reels_avg_watch_time, ig_reels_video_view_total_time, reels_skip_rate, reposts, crossposted_views, facebook_views
 - 릴스에 follows / profile_visits / profile_activity 요청 시 에러 100 → 요청하지 않음
 - 폐기: impressions, plays, clips_replays_count, ig_reels_aggregated_all_plays_count (2025-04-21), video_views (2025-01-08)
 - 지원 안 되는 지표는 자동으로 건너뛰고 `unsupported_metrics`로 보고합니다.
-- 계정 지표는 90일만 보관 → 분석가가 24h/72h/7d 스냅샷을 `data/insta/content-log.jsonl`에 저장합니다.
+- 계정 지표는 90일만 보관, 인사이트는 측정 시점 누적값 → 분석가가 경과 시간과 함께 스냅샷을 `data/insta/content-log.jsonl`에 저장합니다.
 
 ## 미확정 항목 (첫 실계정 연결 시 확인)
 - Instagram 로그인 토큰으로 resumable 업로드가 되는지 (문서 상충)

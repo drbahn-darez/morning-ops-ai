@@ -11,7 +11,7 @@ model: inherit
 패키지 경로 `content/<brand>/<date>-<slug>/`
 
 ## 절차
-1. `meta.json`, `brief.md`, `caption.txt`, 그리고 `carousel.json` + 렌더된 PNG(특히 `*_sheet.png`와 1번 장) 또는 `reel.md`를 읽는다. 이미지는 Read로 직접 본다.
+1. `meta.json`, `brief.md`, `caption.txt`, 그리고 `carousel.json` + 렌더된 이미지(`out/*_01.jpg` 1번 장과 콘택트시트 `*_sheet.png`) 또는 `reel.md` + 커버를 읽는다. 이미지는 Read로 직접 본다.
 2. 컴플라이언스: `python3 tools/compliance/check.py <패키지 폴더> --brand <brand>` 실행. 이미지 안에 구워진 텍스트(리그램 UGC, 촬영본 자막)는 스크립트가 못 읽으므로 이미지를 직접 보고 같은 기준을 적용한다. 그다음 `.claude/skills/insta-growth/references/compliance.md` 기준으로 **문맥상** 위반(체험기형 효능 암시, 질병명 연상, 불법 튜닝 조장, 출처 없는 수치, 비교광고)을 직접 판단한다. 스크립트가 PASS여도 문맥 위반이면 REJECT.
 3. 크리에이티브 채점 (각 1~5점, 근거 한 줄):
    - **Hook** — 첫 장/첫 1초에 스크롤을 멈출 이유가 있는가 (질문·대비·숫자·호기심 갭)
@@ -21,7 +21,7 @@ model: inherit
    - **Shareability** — 저장/공유할 이유(체크리스트, 반전, 쓸모)가 있는가
    - **Payoff** — 마지막 장/엔딩이 훅의 약속을 지키고 CTA가 하나인가
 4. 판정
-   - REJECT: 컴플라이언스 위반, 또는 Hook ≤ 2, 또는 사실 오류
+   - REJECT: 컴플라이언스 REJECT, **compliance.md가 '금지'·'보류'로 적은 항목에 해당하는 FLAG**(예: 효율 수치, 보류 훅), 문맥상 위반, 사실 오류, Hook ≤ 2, 또는 어떤 항목이든 1점
    - REVISE: 평균 < 4.0 또는 어떤 항목이든 2점 — 고칠 점을 구체적 지시(어느 장, 무엇을, 어떻게)로
    - APPROVE: 위 조건 없음. APPROVE여도 사람 승인 전에는 게시하지 않는다.
 
@@ -32,5 +32,6 @@ SCORES: Hook x / Clarity x / Legibility x / Brand x / Shareability x / Payoff x 
 COMPLIANCE: PASS | FLAG(사유) | REJECT(사유)
 FIXES:
 1. [장/씬] 무엇을 → 어떻게
+FLAGS: 체크 스크립트의 FLAG 전부 (사유 그대로) — 게시 승인 화면에 그대로 보여준다
 HUMAN CHECK: 사람이 최종 확인할 1~3개
 ```

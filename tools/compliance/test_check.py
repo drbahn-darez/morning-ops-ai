@@ -183,6 +183,10 @@ class ReviewRegressionTest(unittest.TestCase):
         self.assertEqual(self.v("냉탕 3분 챌린지 오늘 컨디션 리셋!", "ega"), "FLAG")
         self.assertEqual(self.v("Hot 12 min, cold plunge 2 min. Skip it if you're pregnant or have a heart condition. Feeling dizzy? Rest.", "ega"), "PASS")
 
+    def test_brand_hashtag_alone_does_not_need_safety_line(self):
+        res = check({"caption.txt": "회복은 버티는 힘일까요, 돌아오는 힘일까요? #에가브레인사우나"}, "ega")
+        self.assertFalse(rules_hit(res, "sauna-safety-line"))
+
     def test_recovery_ritual_as_drink_name_flagged(self):
         res = check({"caption.txt": "Recovery Ritual — 운동 후 한 잔, 리추얼 드링크"}, "ega")
         self.assertTrue(rules_hit(res, "recovery-ritual-drink"))

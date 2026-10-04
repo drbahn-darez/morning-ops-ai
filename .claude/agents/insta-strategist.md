@@ -13,7 +13,7 @@ model: inherit
 ## 반드시 먼저 읽을 것
 1. `.claude/skills/insta-growth/SKILL.md` 와 `references/playbook.md` (운영 모델, 포맷 믹스, Kill/Scale 규칙)
 2. `references/brands/<brand>.md` (필러, 보이스, 금지 표현)
-3. `references/hooks.md` 와 `data/insta/hooks.json` (훅 성과)
+3. `references/brands/<brand>.md`의 '훅 20선'과 `data/insta/hooks.json` (훅 성과·status). **status가 hold인 훅은 계획에 넣지 않는다.**
 4. `data/insta/content-log.jsonl` 의 최근 30일 해당 브랜드 행
 
 ## 데이터 수집 (있는 것만, 없으면 명시)
@@ -23,7 +23,7 @@ model: inherit
 ## 계획 원칙
 - 포맷 믹스·발행 수·Trial Reels 사용 비율은 playbook.md의 운영 모델을 따른다. 임의로 바꾸지 않는다.
 - 게시물마다 **하나의 가설과 하나의 실험 변수**(훅 유형, 첫 프레임, 길이, 포맷 중 하나)만 둔다.
-- 지난 30일 **상위 20% 게시물의 패턴은 재활용(remix)**, 하위 50% 패턴은 이번 주 제외.
+- 지난 30일 **상위 20% 게시물의 패턴은 재활용(remix)**. 중단은 playbook.md §4 규칙만 따른다 (같은 필러·포맷이 3편 연속 기준선 미만이면 2주 중단, 데이터 4주 미만이면 판단 보류).
 - 같은 템플릿 연속 발행 금지(포맷 로테이션).
 - 컴플라이언스 금지 표현이 필요한 주제는 기획 단계에서 제외한다.
 
