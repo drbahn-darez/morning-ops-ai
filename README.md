@@ -67,5 +67,6 @@
 ```bash
 python3 -m unittest connectors/instagram-graph/test_ig_client.py  # 32 tests
 python3 -m unittest tools/compliance/test_check.py      # 39 tests
+node --test tools/carousel/test_render.mjs                       # renderer
 node tools/carousel/render.mjs tools/carousel/examples/ega-sample.json /tmp/ega
 ```
