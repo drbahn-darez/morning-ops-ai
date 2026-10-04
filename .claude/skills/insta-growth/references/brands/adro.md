@@ -87,7 +87,7 @@
 | adro-h12 | POV: picking up your M4 after a full adro kit. | 오너 동의 | 3 |
 | adro-h13 | He drove it at Cadwell. His first words: | Liam 동의 필요 | 4 |
 | adro-h14 | Can a car designer run CFD without an engineer? We gave AOX to one. | | 4 |
-| adro-h15 | 1 billion cells vs 5 million. Same question, different tool. | 속도 주장 금지 | 4 |
+| adro-h15 | 1 billion cells vs 5 million. Same question, different tool. | ⚠️ 보류 — 비교 광고(객관적 근거 필요), 속도 주장 금지 | 4 |
 | adro-h16 | Every crease on this bumper has a job. Here are 3. | | 1 |
 | adro-h17 | Irvine to Seoul: one part, two continents. | 창고 워크스루 | 2 |
 | adro-h18 | Rate this spec 1–10. | | 3 |
@@ -102,4 +102,4 @@
 1. @adro.inc 현재 팔로워 수, 30일 릴스 중앙 조회 (기준선) — Supermetrics IGI 연결 후
 2. 벤치마크 계정 검증 — 후보(검증 전, 수치 인용 금지): Liberty Walk, Rocket Bunny/Pandem, Vorsteiner, 1016 Industries, Mansory, Novitec, Prior Design, APR Performance, Voltex, Darwinpro / AirShaper, SimScale, Driver61, Engineering Explained / Windshear, A2 Wind Tunnel / Top Gear. `ig_competitor`(Facebook 로그인) 또는 Supermetrics IGPD2로 최근 90일 릴스 10만+ 비율·중앙값 수집 후 `data/insta/benchmarks.json`에 저장, 검증된 계정만 인용.
 3. Top Gear 새 채널의 플랫폼·핸들, 콜랩·로고·엠바고 계약 범위
-4. AOX 고객 참여형 콘테스트 기획서 원문 위치 (Drive 검색 실패)
+4. AOX 고객 참여형 콘테스트 기획서: Slack #c-level 2026-08-21 'TalkFile_aox mkt 콘텐츠 기획_p_202608_ver10.pdf'(10.4MB, 커넥터 크기 제한으로 미열람) — 원문 확인 후 콘테스트 콜랩 설계에 반영

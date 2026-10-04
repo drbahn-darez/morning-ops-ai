@@ -120,9 +120,15 @@ class DisclosureTest(unittest.TestCase):
         res = check({"carousel.json": spec, "caption.txt": "회복 루틴 공유"}, "ega", {"paid": True})
         self.assertFalse(rules_hit(res, "missing-ad-disclosure"))
 
-    def test_paid_reel_needs_in_video_disclosure(self):
-        res = check({"caption.txt": "#광고 리추얼"}, "ega", {"paid": True, "format": "REELS", "audio_source": "original"})
-        self.assertTrue(rules_hit(res, "reel-disclosure-in-video"))
+    def test_paid_reel_disclosure_title_or_video(self):
+        meta = {"paid": True, "format": "REELS", "audio_source": "original"}
+        res = check({"caption.txt": "#광고 리추얼"}, "ega", meta)
+        self.assertFalse(rules_hit(res, "missing-ad-disclosure"))
+        self.assertEqual(rules_hit(res, "reel-disclosure-in-video")[0]["severity"], "FLAG")
+        res2 = check({"caption.txt": "리추얼"}, "ega", dict(meta, on_video_disclosure_start=True, on_video_disclosure_end=True))
+        self.assertFalse(rules_hit(res2, "missing-ad-disclosure"))
+        res3 = check({"caption.txt": "리추얼"}, "ega", meta)
+        self.assertTrue(rules_hit(res3, "missing-ad-disclosure"))
 
 
 class MetaChecksTest(unittest.TestCase):

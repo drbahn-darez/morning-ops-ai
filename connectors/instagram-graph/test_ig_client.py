@@ -41,7 +41,7 @@ class FakeAPI:
         raise AssertionError(f"unexpected call {method} {path}")
 
 
-def make_client(routes, host="instagram", publish=False):
+def make_client(routes, host="facebook", publish=False):
     acct = Account(brand="ega", token="TOKEN1234567890", user_id="1789", host=host)
     api = FakeAPI(routes)
     return IGClient({"ega": acct}, transport=api, api_version="v24.0",
@@ -122,7 +122,7 @@ class ReadTest(unittest.TestCase):
         self.assertNotIn("impressions", api.calls[0]["params"]["metric"])
         self.assertNotIn("plays", api.calls[0]["params"]["metric"].split(","))
         self.assertEqual(res["metrics"]["views"], 10)
-        self.assertTrue(api.calls[0]["url"].startswith("https://graph.instagram.com/v24.0/"))
+        self.assertTrue(api.calls[0]["url"].startswith("https://graph.facebook.com/v24.0/"))
 
     def test_media_insights_skips_unsupported_metric(self):
         def insights(params, form):
@@ -194,7 +194,7 @@ class ReadTest(unittest.TestCase):
             c.recent_performance("ega")
 
     def test_competitor_requires_facebook_host(self):
-        c, _ = make_client({})
+        c, _ = make_client({}, host="instagram")
         with self.assertRaises(IGError) as ctx:
             c.competitor("ega", "someone")
         self.assertIn("Facebook Login", str(ctx.exception))
@@ -244,13 +244,23 @@ class PublishTest(unittest.TestCase):
                       branded_content_sponsor_ids=["111", "222"], location_id="999", is_ai_generated=True)
         form = api.calls[0]["form"]
         self.assertEqual(form["is_paid_partnership"], "true")
-        self.assertEqual(json.loads(form["branded_content_sponsor_ids"]), ["111", "222"])
+        self.assertEqual(json.loads(form["branded_content_sponsor_ids"]), [111, 222])
         self.assertEqual(form["location_id"], "999")
         with self.assertRaises(IGError):
             c.create_reel("ega", "x", video_url="https://a/v.mp4", branded_content_sponsor_ids=["1", "2", "3"])
         with self.assertRaises(IGError):
             c.create_reel("ega", "x", video_url="https://a/v.mp4", collaborators=["a", "b", "c", "d"])
         self.assertEqual(form["is_ai_generated"], "true")
+
+    def test_instagram_login_limits(self):
+        c, api = make_client({}, host="instagram")
+        with tempfile.NamedTemporaryFile(suffix=".mp4") as f:
+            with self.assertRaises(IGError) as ctx:
+                c.create_reel("ega", "x", video_path=f.name)
+        self.assertIn("Facebook Login", str(ctx.exception))
+        with self.assertRaises(IGError):
+            c.create_reel("ega", "[광고] x", video_url="https://a/v.mp4", is_paid_partnership=True)
+        self.assertEqual(api.calls, [])
 
     def test_reel_needs_exactly_one_source(self):
         c, _ = make_client({})

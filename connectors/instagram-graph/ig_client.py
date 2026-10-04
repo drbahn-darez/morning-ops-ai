@@ -265,11 +265,15 @@ def _is_metric_error(e: IGError) -> bool:
     return e.code == 100 and e.subcode != 33 and "metric" in str(e).lower()
 
 
-def _check_lists(collaborators: list[str] | None, sponsors: list[str] | None) -> None:
+def _check_lists(collaborators: list[str] | None, sponsors: list | None) -> None:
     if collaborators and len(collaborators) > 3:
         raise IGError(f"{len(collaborators)} collaborators given; the API allows 3.")
     if sponsors and len(sponsors) > 2:
         raise IGError(f"{len(sponsors)} branded_content_sponsor_ids given; the limit is 2.")
+
+
+def _sponsor_ids(sponsors: list) -> str:
+    return json.dumps([int(_id(s, "branded_content_sponsor_id")) for s in sponsors])
 
 
 class IGClient:
@@ -505,7 +509,7 @@ class IGClient:
                     cover_url: str | None = None, thumb_offset_ms: int | None = None, share_to_feed: bool = True,
                     collaborators: list[str] | None = None, audio_name: str | None = None,
                     trial_graduation: str | None = None, is_ai_generated: bool = False,
-                    is_paid_partnership: bool = False, branded_content_sponsor_ids: list[str] | None = None,
+                    is_paid_partnership: bool = False, branded_content_sponsor_ids: list | None = None,
                     location_id: str | None = None) -> dict:
         acct = self.account(brand)
         if bool(video_url) == bool(video_path):
@@ -517,6 +521,8 @@ class IGClient:
         else:
             if not os.path.isfile(video_path):
                 raise IGError(f"File not found: {video_path}")
+            # Meta docs: upload_type=resumable is only for apps using Facebook Login for Business.
+            self._require_facebook(acct, "Local video upload (resumable)")
             params["upload_type"] = "resumable"
         if cover_url:
             params["cover_url"] = cover_url
@@ -533,10 +539,13 @@ class IGClient:
             params["trial_params"] = json.dumps({"graduation_strategy": trial_graduation})
         if is_ai_generated:
             params["is_ai_generated"] = "true"
+        if is_paid_partnership or branded_content_sponsor_ids:
+            # The paid-partnership label is documented for Facebook Login only.
+            self._require_facebook(acct, "Paid partnership label")
         if is_paid_partnership:
             params["is_paid_partnership"] = "true"
         if branded_content_sponsor_ids:
-            params["branded_content_sponsor_ids"] = json.dumps(branded_content_sponsor_ids)
+            params["branded_content_sponsor_ids"] = _sponsor_ids(branded_content_sponsor_ids)
         if location_id:
             params["location_id"] = location_id
         created = self._call(acct, "POST", f"{acct.user_id}/media", params)
@@ -555,7 +564,7 @@ class IGClient:
 
     def create_carousel(self, brand: str, caption: str, items: list[dict],
                         collaborators: list[str] | None = None, is_ai_generated: bool = False,
-                        is_paid_partnership: bool = False, branded_content_sponsor_ids: list[str] | None = None,
+                        is_paid_partnership: bool = False, branded_content_sponsor_ids: list | None = None,
                         location_id: str | None = None) -> dict:
         acct = self.account(brand)
         if not CAROUSEL_MIN <= len(items) <= CAROUSEL_MAX:
@@ -592,10 +601,13 @@ class IGClient:
             params["collaborators"] = json.dumps(collaborators)
         if is_ai_generated:
             params["is_ai_generated"] = "true"
+        if is_paid_partnership or branded_content_sponsor_ids:
+            # The paid-partnership label is documented for Facebook Login only.
+            self._require_facebook(acct, "Paid partnership label")
         if is_paid_partnership:
             params["is_paid_partnership"] = "true"
         if branded_content_sponsor_ids:
-            params["branded_content_sponsor_ids"] = json.dumps(branded_content_sponsor_ids)
+            params["branded_content_sponsor_ids"] = _sponsor_ids(branded_content_sponsor_ids)
         if location_id:
             params["location_id"] = location_id
         parent = self._call(acct, "POST", f"{acct.user_id}/media", params)

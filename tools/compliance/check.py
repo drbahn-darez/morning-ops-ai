@@ -157,15 +157,20 @@ def check(content: dict, brand: str, meta: dict | None = None, paid: bool = Fals
         valid = re.compile(disc["valid"])
         in_caption = bool(valid.search(head))
         in_image = bool(re.search(r"광고(?! ?(아님|아니|아닙|문의|없))|협찬(?! ?(아님|아니|아닙|문의|·?제휴))", first_slide))
-        if not (in_caption or in_image):
+        in_video = bool(meta.get("on_video_disclosure_start") and meta.get("on_video_disclosure_end"))
+        is_reel = (meta.get("format") or "").upper() == "REELS"
+        if is_reel:
+            # 예규 499 Ⅴ.6: 동영상은 '제목 또는 동영상 내' — caption head OR in-video (start, end, repeated).
+            if not (in_caption or in_video):
+                hits.append(_hit("REJECT", "missing-ad-disclosure", disc["why"], disc["law"], disc["fix"], "$.caption", head))
+            elif not in_video:
+                hits.append(_hit("FLAG", "reel-disclosure-in-video", "캡션 표시는 충족. 영상만 보는 시청자를 위해 영상 시작·끝 '광고' 표시 권장",
+                                 disc["law"], "영상 첫·마지막 프레임에 '광고' 오버레이 후 meta에 표시"))
+        if not is_reel and not (in_caption or in_image):
             why = disc["why"]
             if re.search(disc["invalid_only"], head, re.IGNORECASE):
                 why += " (영문·모호 표기만 있음)"
             hits.append(_hit("REJECT", "missing-ad-disclosure", why, disc["law"], disc["fix"], "$.caption", head))
-        if (meta.get("format") or "").upper() == "REELS" and not (
-            meta.get("on_video_disclosure_start") and meta.get("on_video_disclosure_end")):
-            hits.append(_hit("REJECT", "reel-disclosure-in-video", "릴스는 영상 시작과 끝에 '광고' 표시 필요",
-                             disc["law"], "영상 첫 프레임·마지막 프레임에 '광고' 오버레이 후 meta에 표시"))
 
     # 5. AI content
     role = (meta.get("ai_persona_role") or "none").lower()

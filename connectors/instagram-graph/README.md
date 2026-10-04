@@ -32,8 +32,9 @@
 | 호스트 | graph.facebook.com | graph.instagram.com |
 | 필요 조건 | 인스타 프로페셔널 계정이 Facebook 페이지에 연결 | 프로페셔널 계정만 |
 | 경쟁 계정(Business Discovery) | ✅ | ❌ |
+| 유료 파트너십 라벨(API) | ✅ | ❌ |
 | 해시태그 검색 | ✅ (Instagram Public Content Access 기능 필요) | ❌ |
-| 로컬 파일 업로드(resumable) | ✅ 문서화 | 문서 상충 — 공개 URL 권장 |
+| 로컬 파일 업로드(resumable) | ✅ | ❌ (Meta 문서상 Facebook Login 전용 — 공개 video_url 필요) |
 | 토큰 수명 | 시스템 사용자 토큰은 만료 없음 가능 | 60일, 갱신 필요 |
 | 권한 | instagram_basic, instagram_content_publish, instagram_manage_insights, pages_show_list, pages_read_engagement (+ Business Manager 경유 시 ads_read) | instagram_business_basic, instagram_business_content_publish, instagram_business_manage_insights |
 
@@ -75,7 +76,6 @@
 - 계정 지표는 90일만 보관, 인사이트는 측정 시점 누적값 → 분석가가 경과 시간과 함께 스냅샷을 `data/insta/content-log.jsonl`에 저장합니다.
 
 ## 미확정 항목 (첫 실계정 연결 시 확인)
-- Instagram 로그인 토큰으로 resumable 업로드가 되는지 (문서 상충)
 - `content_publishing_limit`의 실제 quota_total (문서상 100 vs 50)
 - `reels_skip_rate`가 값이 나오는 최소 조회 수
 - Trial Reel의 졸업(팔로워 공개) 상태를 API로 읽을 수 있는지 — 현재 확인된 필드 없음

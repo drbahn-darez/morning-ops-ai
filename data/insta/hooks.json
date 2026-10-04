@@ -496,7 +496,7 @@
    "brand": "adro",
    "eyebrow": "",
    "headline": "1 billion cells vs 5 million. Same question, different tool.",
-   "note": "속도 주장 금지",
+   "note": "보류 — 비교 광고(객관적 근거 필요), 속도 주장 금지",
    "pillar": "4",
    "uses": 0,
    "total_views": 0,
@@ -504,7 +504,7 @@
    "hits_100k": 0,
    "last_used": null,
    "media_ids": [],
-   "status": "active"
+   "status": "hold"
   },
   {
    "id": "adro-h16",
