@@ -200,7 +200,7 @@ def derive(insights: dict[str, Any]) -> dict[str, Any]:
     }
     skip = insights.get("reels_skip_rate")
     if skip is not None:
-        # Share of views that left within the first 3 seconds (hook failure rate).
+        # Share of viewers who swiped away within the first 3 seconds (hook failure rate).
         out["skip_rate"] = skip
     avg_ms = insights.get("ig_reels_avg_watch_time")
     if avg_ms is not None:
