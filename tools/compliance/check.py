@@ -34,7 +34,7 @@ from pathlib import Path
 
 RULES_PATH = Path(__file__).with_name("rules.json")
 SEVERITY_ORDER = {"PASS": 0, "FLAG": 1, "REJECT": 2}
-SKIP_KEYS = {"image", "video", "id", "brand", "size", "layout", "audio", "format", "handle", "meta"}
+SKIP_KEYS = {"image", "video", "id", "brand", "size", "layout", "audio", "format", "handle", "meta", "todos"}
 REVIEW_REQUIRED = {"hff", "functional_food", "special_nutrition", "special_medical"}
 MAX_HASHTAGS, MAX_CAPTION = 5, 2200
 BRANDS = {"ega", "adro"}
@@ -120,10 +120,15 @@ def check(content: dict, brand: str, meta: dict | None = None, paid: bool = Fals
         if sev == "REJECT" and rule.get("downgrade_if_meta") and meta.get(rule["downgrade_if_meta"]):
             sev = "FLAG"
         for path, text in texts:
+            flag_rx = re.compile(rule["flag_if_sentence"]) if rule.get("flag_if_sentence") else None
             for m in rx.finditer(text):
-                if unless and unless.search(_sentence(text, m)):
+                sentence = _sentence(text, m)
+                if unless and unless.search(sentence):
                     continue
-                hits.append(_hit(sev, rule["id"], rule["why"], rule.get("law", ""), rule.get("fix", ""), path, m.group(0)))
+                # Myth framing usually puts the debunk in the next sentence ("…? 사실이 아니에요"), so look nearby.
+                near = text[max(0, m.start() - 20): m.end() + 60]
+                sev_here = "FLAG" if (flag_rx and sev == "REJECT" and flag_rx.search(near)) else sev
+                hits.append(_hit(sev_here, rule["id"], rule["why"], rule.get("law", ""), rule.get("fix", ""), path, m.group(0)))
                 break
 
     # 2. Pre-review for health functional food classes

@@ -2,9 +2,10 @@
 
 ## content-log.jsonl (패키지/게시물 1개 = 1줄, `id`=패키지 폴더명. producer가 제작 시 행 생성, 게시·분석 시 같은 행을 갱신)
 ```json
-{"id": "ega-2026-10-07-sauna-myth", "brand": "ega", "date": "2026-10-07", "format": "REELS|CAROUSEL",
+{"id": "2026-10-07-sauna-myth", "brand": "ega", "date": "2026-10-07", "format": "REELS|CAROUSEL",
  "pillar": "1", "hook_id": "ega-h01", "hypothesis": "...", "experiment": "hook|first_frame|length|format",
- "trial": "SS_PERFORMANCE|MANUAL|null", "paid": false, "status": "planned|produced|approved|published|dropped",
+ "trial": "MANUAL|SS_PERFORMANCE|null", "variants": [{"id": "A", "media_id": null}], "paid": false,
+ "status": "planned|produced|blocked|approved|published|dropped", "package": "content/<brand>/<id>/",
  "media_id": null, "permalink": null, "published_at": null,
  "snapshots": [{"measured_at": "2026-10-08T19:30:00+09:00", "age_hours": 24, "views": 0, "reach": 0, "...": "ig_media_insights metrics + derived"}],
  "diagnosis": null}

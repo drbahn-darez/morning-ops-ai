@@ -53,9 +53,10 @@
 | `tools/carousel/` | 헤드리스 캐러셀 렌더러 (EGA·adro 테마) |
 | `tools/reels/` | 릴스 업로드 규격 정규화 (ffmpeg) |
 | `tools/compliance/` | 규제·브랜드 보이스 자동 게이트 |
-| `routines/` | 루틴 프롬프트 사양 (claude.ai 루틴 UI에 적용) |
+| `routines/` | 루틴 사양 — 아침 브리핑 v02, 인스타 주간 리뷰, 보조(일일 스냅샷·토큰·월간 점검). claude.ai 루틴 UI에서 생성 |
+| `docs/research/` | 리서치 합성 원문 (출처 83개, 2026-10-04) |
 | `data/insta/` | 게시물 로그, 훅 리더보드 |
-| `content/<brand>/` | 주간 플랜, 게시물 패키지 (렌더 결과 `out/`은 git 제외) |
+| `content/<brand>/` | 주간 플랜, 게시물 패키지 (렌더 결과 `out/`은 git 제외). 첫 패키지 2건: EGA 사우나 오해 캐러셀(핸들 대기), adro M4 범퍼 릴스(디자인팀 입력 대기) |
 
 ## 시작하기 (대표님이 할 일)
 1. **Supermetrics 인스타 연결** (분석 즉시 가능): claude.ai Supermetrics 커넥터에서 Instagram Insights 로그인

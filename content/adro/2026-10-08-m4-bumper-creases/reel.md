@@ -2,7 +2,7 @@
 
 - Brand: adro (@adro.inc) · Pillar 1 AERO PROOF · Hook adro-h16
 - Format: Reels, 1080×1920 (9:16), target **38 s** (brief limit: 30–45 s)
-- Publish: 2026-10-08 18:00 PT, as two Trial Reels (Variant A orbit / Variant B crease). The variants differ only in 0.0–3.0 s.
+- Publish: 2026-10-08 18:00 PT, as two Trial Reels (Variant A orbit / Variant B crease), graduation **MANUAL** unless a person picks SS_PERFORMANCE. The variants differ only in 0.0–3.0 s; judge them on skip rate / 3-second retention.
 - Language: English on screen, in subtitles and in the VO. Korean lines appear only at the end of the caption.
 - Sound-on design: the VO carries the story. Subtitles are always burned in.
 - Placeholders marked `[TODO …]` are waiting on the design team (brief.md TODO 1). Nothing in them is a claim yet.
@@ -11,9 +11,9 @@
 
 | t (s) | Variant A: orbit | Variant B: crease | On-screen text (both) | VO (both) |
 |---|---|---|---|---|
-| 0.0–0.5 | Finished car with the adro front bumper. Slow cinematic orbit around the front 3/4, low eye level, light falling on the bumper, wheels aligned. Already moving at frame 1. | Macro on crease 01 under raking light, slow push along the line. Already moving at frame 1. | Small label, top (y ≈ 300): `BMW M4 G82 · FRONT BUMPER` | (VO starts at 0.3) |
-| 0.5–1.5 | Orbit continues toward the bumper. | Push continues, the line catches the light. | Large, centered: `Every crease has a job.` | "Every crease on this bumper has a job." |
-| 1.5–3.0 | Orbit settles on a straight-on front view of the bumper. | Rack focus out to reveal more of the bumper. | `Here are 3.` + three empty markers `01 02 03` | "Here are three." |
+| 0.0–0.5 | Finished car with the adro front bumper. Slow cinematic orbit around the front 3/4, low eye level, light falling on the bumper, wheels aligned. Already moving at frame 1. | Macro on crease 01 under raking light, slow push along the line. Already moving at frame 1. | Label, top (y ≈ 300), white ≥44 px on a dark chip (red only for the rule/dot): `ADRO FRONT BUMPER · BMW M4 G82` | (VO starts at 0.3) |
+| 0.3–1.9 | Orbit continues toward the bumper. | Push continues, the line catches the light. | Large, centered, two lines (≤950 px): `Every crease` / `has a job.` | "Every crease has a job." |
+| 2.0–2.9 | Orbit settles on a straight-on front view of the bumper. | Rack focus out to reveal more of the bumper. | `Here are 3.` + three empty markers `01 02 03` | "Here are three." |
 
 The 1-second rule: Variant B's macro frame alone does not show what the video is about, so the car/part label must be visible from frame 1 in both variants.
 
@@ -25,8 +25,8 @@ The 1-second rule: Variant B's macro frame alone does not show what the video is
 | 5.0–13.0 | Crease 01 | 1) Location insert (still from the G8X vertical set, slow push, red line on crease 01). 2) Macro tracking shot along crease 01 (slider or gimbal). 3) Hold on the end of the line. | `01 · [TODO crease 01 name]` / `[TODO job, max 6 words]` | "[TODO crease 01 VO, max 20 words, design-intent language]" |
 | 13.0–21.0 | Crease 02 | Same pattern: location insert, macro track, hold. | `02 · [TODO crease 02 name]` / `[TODO job, max 6 words]` | "[TODO crease 02 VO, max 20 words]" |
 | 21.0–29.0 | Crease 03 | Same pattern. Put the most surprising of the three here; it is the payoff. | `03 · [TODO crease 03 name]` / `[TODO job, max 6 words]` | "[TODO crease 03 VO, max 20 words]" |
-| 29.0–33.0 | Payoff | Pull back to the full car. All three red lines light at once, and the orbit resumes. | `Three lines. Three jobs.` | "Three lines. Three jobs." |
-| 33.0–38.0 | CTA | Slow orbit continues. The last frame matches Variant A's first frame so the reel loops. | `Next: AOX, our aero CFD software` / `Launching mid-November · Follow @adro.inc` | "Next up: AOX, our aero CFD software. It launches mid-November. Follow so you don't miss it." |
+| 29.0–33.0 | Payoff | Pull back to the full car. All three red lines light at once. | `Now you'll spot them on every M4.` | "Now you'll spot them on every M4." |
+| 33.0–38.0 | CTA | Hard cut to the end card (neutral ending — no loop advantage for either variant). | `Next: AOX, our aero CFD software` / `Launching mid-November · Follow @adro.inc` | "Next up: AOX, our aero CFD software. It launches mid-November. Follow so you don't miss it." |
 
 Rules for filling the TODO slots (brief.md TODO 1):
 - One crease per scene, one message per scene.
@@ -38,7 +38,7 @@ Rules for filling the TODO slots (brief.md TODO 1):
 - Safe zone: all text inside x 65–1015, y 269–1248. Nothing near the bottom-right button column.
 - Hook line: Inter Tight 900, about 96 px, white, one line per phrase.
 - Labels and markers: JetBrains Mono, 34 px, red #E1251B.
-- Burned-in subtitles: Inter Tight 800, 64 px, white with a 5 px dark outline. At most 2 lines (about 32 characters per line in English). The bottom of the subtitle block must sit at or above y 1240.
+- Burned-in subtitles: Inter Tight 800, 64 px, white with a 5 px dark outline. At most 2 lines, **≤27 characters per line** (31 chars = 975 px, past the 950 px safe width). The bottom of the subtitle block must sit at or above y 1240.
 - Hold every on-screen job line for at least 2 s.
 - Keep the adro logo small and only at the end. No other platform's logos or watermarks.
 

@@ -5,7 +5,7 @@
 //
 // Spec:
 // {
-//   "id": "ega-2026-10-07-sauna-myth",
+//   "id": "2026-10-07-sauna-myth",           // = package folder name = content-log id
 //   "brand": "ega" | "adro",
 //   "size": "4:5" (default, API carousel) | "3:4" (app-only hero carousel with music) | "1:1" | "9:16" (Reels cover_url),
 //   "handle": "@brand",                     // optional, overrides theme

@@ -45,7 +45,11 @@ description: |
 | 성과, 리포트, 왜 안 됐어 | ANALYZE | `insta-analyst` |
 | 한 주 통째로 돌려줘 | WEEKLY | ANALYZE → PLAN → PRODUCE×N → REVIEW×N, 게시는 승인 대기 |
 
-여러 브리프를 제작할 때는 제작자 서브에이전트를 브리프별로 병렬 실행하고, 각 결과를 검수자에게 넘긴다.
+여러 브리프를 제작할 때는 제작자 서브에이전트를 브리프별로 병렬 실행하고, 각 결과를 검수자에게 넘긴다. (병렬 제작자가 `data/insta/content-log.jsonl`을 동시에 고치면 행이 유실될 수 있으므로, 제작 후 오케스트레이터가 로그를 한 번 확인한다.)
+
+**REVISE 루프**: 검수자 FIXES를 그대로 제작자에게 넘겨 1회 수정 → 검수자 재검수(이전 FIXES 반영 여부 체크 + 전 항목 재채점). 최대 2회. 사람 입력이 필요한 FIX는 루프를 돌리지 말고 `status: blocked`로 사람에게 넘긴다. 패키지 커밋은 오케스트레이터가 한다(렌더 결과 `out/` 제외).
+
+**상태 흐름**: planned → produced → (blocked) → approved(검수 APPROVE + 사람 승인) → published → 분석 / dropped
 
 ## 브랜드
 - `ega` → `references/brands/ega.md` (웰니스·NMN·브레인 사우나, 국문 중심)
@@ -53,7 +57,7 @@ description: |
 브랜드가 불명확하면 한 줄로 묻는다. 두 브랜드 콘텐츠를 섞지 않는다.
 
 ## 게시 절차 (PUBLISH) — 사람 승인 없이는 절대 게시하지 않는다
-1. 패키지의 `review.md`가 `APPROVE`인지 확인. 아니면 중단.
+1. 패키지의 `review.md`가 `APPROVE`이고, `meta.handle`(또는 브랜드 팩 핸들)이 설정돼 있고, 플레이스홀더가 없는지 확인. 아니면 중단.
 2. 사람에게 최종 확인 요청: 첫 장/커버 이미지, 캡션 전문, 게시 시간, **컴플라이언스 FLAG 사유 전부**(review.md의 FLAGS), Trial 여부와 **졸업 방식**을 보여준다. Trial 기본값은 `MANUAL`(72시간 후 사람이 앱에서 팔로워 공유 결정). `SS_PERFORMANCE`(인스타가 자동 공유)는 사람이 명시적으로 고른 경우에만.
 3. 사람이 명시적으로 승인한 경우에만:
    - 릴스: `ig_create_reel_container`(로컬 파일이면 `video_path`; Trial이면 `trial_graduation`) → `ig_container_status(wait=true)` → `ig_publish(human_approval="<사람의 승인 문구>")`

@@ -14,7 +14,8 @@
 
 ## 언어
 - **영문 우선**: 첫 줄 훅·화면 텍스트·자막 영어, 캡션 끝에 국문 1~2줄(검색어 '바디킷', '카본', '에어로' 포함). 국내 한정 이슈만 국문 우선.
-- 캡션 첫 2줄에 차종+파츠 키워드: "BMW M4 G82 carbon front bumper", "Tesla Model Y aero kit".
+- 캡션 첫 2줄에 차종+파츠 키워드: "BMW M4 G82 front bumper", "Tesla Model Y aero kit". **소재(carbon/TPO 등)는 제품 사양서로 확인한 것만** — G8X 범퍼는 2022 카탈로그상 TPO(검수 확인), 버전(V1/페이스리프트/V2)도 확인.
+- 파츠 라벨은 adro 제품임이 드러나게: "ADRO FRONT BUMPER · BMW M4 G82" (차종만 쓰면 BMW 순정 디자인으로 읽힘)
 - "영문 먼저 vs 국문 먼저"는 첫 2주 Trial Reels 실험 변수.
 
 ## 비주얼
@@ -43,7 +44,8 @@
 |---|---|---|
 | At Cadwell_99_track_17 (Liam's comment on AOX bumper's performance).MP4 (2025-07) | AOX 런칭 증거 릴스 1순위 — 제3자 드라이버의 AOX 설계 범퍼 평가 | **Liam 초상권·사용 동의 확인 필요** |
 | Warehouse walkthrough.mp4 (2026-09-14) | "Irvine to Seoul" 장소 대비, BTS | |
-| G8X instagram vertical_1/2.jpg, GT3 instagram-34.jpg | 캐러셀·커버 | |
+| G8X instagram vertical_1/2.jpg, GT3 instagram-34.jpg | 캐러셀·커버 | G8X 스틸은 Drive `BMW/G8X/ADRO CUSTOMER`, `NEW CUSTOMER` 폴더 — **고객 차량이므로 오너 동의·번호판 확인 후** |
+| G8X BUMPER DESIGN VLOG.mp4 (FINAL VIDEO 폴더) | 디자인 의도 설명의 1차 사실 출처 후보 | 내용 확인 후 인용 |
 | "We Built a Wild 992 GT3 Then Gave It to Media" (YouTube 다운로드) | **사용 금지 — 제3자 채널 영상이면 재업로드 = 비독창 콘텐츠** | 출처 확인 전까지 |
 
 ## Top Gear 모먼트 운영 (승인 게이트 포함)

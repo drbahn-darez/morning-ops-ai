@@ -11,10 +11,24 @@
   "experiment": "first_frame",
   "experiment_detail": "First frame (0.0-3.0 s) = finished car slow cinematic orbit (A) vs close-up of a crease (B); everything after 3.0 s identical",
   "variants": [
-    {"id": "A", "name": "orbit", "first_frame": "finished car, slow cinematic orbit, front 3/4, low eye level", "file": "variant-A-orbit.mp4", "trial": "SS_PERFORMANCE", "media_id": null},
-    {"id": "B", "name": "crease", "first_frame": "macro close-up of crease 01, raking light, slow push", "file": "variant-B-crease.mp4", "trial": "SS_PERFORMANCE", "media_id": null}
+    {
+      "id": "A",
+      "name": "orbit",
+      "first_frame": "finished car, slow cinematic orbit, front 3/4, low eye level",
+      "file": "variant-A-orbit.mp4",
+      "trial": "MANUAL",
+      "media_id": null
+    },
+    {
+      "id": "B",
+      "name": "crease",
+      "first_frame": "macro close-up of crease 01, raking light, slow push",
+      "file": "variant-B-crease.mp4",
+      "trial": "MANUAL",
+      "media_id": null
+    }
   ],
-  "trial": "SS_PERFORMANCE",
+  "trial": "MANUAL",
   "cta": "follow (AOX launch, mid-November)",
   "product_category": "auto_part",
   "paid": false,
@@ -41,5 +55,24 @@
     "TODO 5: VO talent (team designer, original voice)",
     "TODO 6: add real G8X still to cover.json and re-render",
     "TODO 7: confirm 'mid-November' AOX launch can be stated publicly"
-  ]
+  ],
+  "status": "blocked",
+  "handle": "@adro.inc",
+  "review_round": {
+    "round": 1,
+    "verdict": "REVISE",
+    "fixes_applied": [
+      2,
+      3,
+      4,
+      5,
+      "6 (footer)",
+      8
+    ],
+    "fixes_pending": {
+      "1": "디자인팀 크리스 설명 대기",
+      "6": "고객 차량 동의 후 실사 커버",
+      "7": "CFD 연결 여부 디자인팀 확인"
+    }
+  }
 }

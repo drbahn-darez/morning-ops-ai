@@ -241,6 +241,28 @@ class ReviewRegressionTest(unittest.TestCase):
         self.assertTrue(rules_hit(res, "hashtag-cap"))
 
 
+class DryRunFrictionTest(unittest.TestCase):
+    """Cases from the 2026-10-04 producer/reviewer dry run."""
+
+    def test_placeholder_rejected(self):
+        res = check({"reel.md": "01 · [TODO crease 01 name]"}, "adro")
+        self.assertTrue(rules_hit(res, "placeholder"))
+        self.assertEqual(res["verdict"], "REJECT")
+
+    def test_myth_debunk_is_flag_not_reject(self):
+        res = check({"caption.txt": "땀으로 독소가 빠진다? 사실이 아니에요."}, "ega")
+        hit = rules_hit(res, "food-function-claim")
+        self.assertEqual(hit[0]["severity"], "FLAG")
+        res3 = check({"caption.txt": "MYTH 02 · 땀으로 독소가 빠진다"}, "ega")
+        self.assertEqual(rules_hit(res3, "food-function-claim")[0]["severity"], "FLAG")
+        res2 = check({"caption.txt": "땀으로 독소 배출까지 한 번에"}, "ega")
+        self.assertEqual(rules_hit(res2, "food-function-claim")[0]["severity"], "REJECT")
+
+    def test_hydration_tip_with_ritual_hashtag_not_flagged(self):
+        res = check({"caption.txt": "들어가기 전 물 마시기 #에가브레인사우나 #RecoveryRitual"}, "ega")
+        self.assertFalse(rules_hit(res, "recovery-ritual-drink"))
+
+
 class PackageModeTest(unittest.TestCase):
     def test_reads_package_dir(self):
         with tempfile.TemporaryDirectory() as d:

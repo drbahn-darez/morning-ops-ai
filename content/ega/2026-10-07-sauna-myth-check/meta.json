@@ -18,8 +18,7 @@
   ],
   "trial": null,
   "cta": "save",
-  "location_tag": "에가 브레인 사우나 (EGA Brain Sauna) — location_id TODO",
-  "handle": "TODO — unconfirmed in brand pack",
+  "handle": null,
   "product_category": "sauna_service",
   "paid": false,
   "gifted": false,
@@ -62,5 +61,26 @@
     "checked_on": "2026-10-04",
     "hits": []
   },
-  "flags": []
+  "flags": [],
+  "status": "produced",
+  "location_name": "에가 브레인 사우나",
+  "location_id": null,
+  "todos": [
+    "인스타 핸들 확정 → carousel.json handle 추가 후 재렌더 (review FIX 5)",
+    "현장 스태프 안내와 문구 일치 확인: 냉탕 발끝부터 / 온·냉 사이 앉아서 쉬기 / 들어가기 전 수분 / 숨이 불편해지기 전에 나오기",
+    "위치 태그 '에가 브레인 사우나' location_id 확인"
+  ],
+  "review_round": {
+    "round": 1,
+    "verdict": "REVISE",
+    "fixes_applied": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "fixes_pending": {
+      "5": "handle 대기"
+    }
+  }
 }
