@@ -235,7 +235,8 @@ def derive(insights: dict[str, Any]) -> dict[str, Any]:
     }
     skip = insights.get("reels_skip_rate")
     if skip is not None:
-        # Share of viewers who swiped away within the first 3 seconds (hook failure rate).
+        # Hook failure rate. Meta: "percentage of views from people who skipped during the first 3 seconds"
+        # (estimated, in development; Supermetrics describes it per viewer). Empty for low-view Reels.
         out["skip_rate"] = skip
     avg_ms = insights.get("ig_reels_avg_watch_time")
     if avg_ms is not None:
@@ -530,6 +531,7 @@ class IGClient:
             params["thumb_offset"] = int(thumb_offset_ms)
         _check_lists(collaborators, branded_content_sponsor_ids)
         if collaborators:
+            self._require_facebook(acct, "Collaborators")
             params["collaborators"] = json.dumps(collaborators)
         if audio_name:
             params["audio_name"] = audio_name
@@ -598,6 +600,7 @@ class IGClient:
                               f"children created so far: {','.join(children)}. Parent not created.")
         params = {"media_type": "CAROUSEL", "children": ",".join(children), "caption": caption}
         if collaborators:
+            self._require_facebook(acct, "Collaborators")
             params["collaborators"] = json.dumps(collaborators)
         if is_ai_generated:
             params["is_ai_generated"] = "true"
@@ -638,6 +641,12 @@ class IGClient:
         st = self.container_status(brand, container_id)
         if st.get("status_code") != "FINISHED":
             raise IGError(f"Container {container_id} is {st.get('status_code')}: {st.get('status')}. Not publishing.")
+        # Meta docs disagree on the quota (100 vs 50 per 24h): read the live value before every publish.
+        limit = self.publishing_limit(brand).get("data", [{}])
+        row = limit[0] if limit else {}
+        used, total = row.get("quota_usage"), (row.get("config") or {}).get("quota_total")
+        if isinstance(used, int) and isinstance(total, int) and used >= total:
+            raise IGError(f"Publishing quota reached ({used}/{total} in the last 24h). Not publishing.")
         res = self._call(acct, "POST", f"{acct.user_id}/media_publish", {"creation_id": _id(container_id, "container_id")})
         media_id = res.get("id")
         out = {"published": True, "media_id": media_id}

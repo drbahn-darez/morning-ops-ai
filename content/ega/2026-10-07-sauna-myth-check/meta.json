@@ -1,0 +1,66 @@
+{
+  "id": "2026-10-07-sauna-myth-check",
+  "brand": "ega",
+  "date": "2026-10-07",
+  "publish_at": "2026-10-07T19:30:00+09:00",
+  "pillar": "2",
+  "format": "CAROUSEL",
+  "size": "4:5",
+  "slides": 8,
+  "hook_id": "ega-h01",
+  "hypothesis": "A myth-check carousel with a save-worthy checklist earns more sends/saves per reach than our routine posts",
+  "experiment": "hook",
+  "experiment_variant": "myth_check",
+  "success_metrics": [
+    "saved/reach",
+    "shares/reach",
+    "views/reach"
+  ],
+  "trial": null,
+  "cta": "save",
+  "location_tag": "에가 브레인 사우나 (EGA Brain Sauna) — location_id TODO",
+  "handle": "TODO — unconfirmed in brand pack",
+  "product_category": "sauna_service",
+  "paid": false,
+  "gifted": false,
+  "employee_post": false,
+  "review_id": null,
+  "evidence_ids": [],
+  "tuning_cert_id": null,
+  "ai_assets": [],
+  "is_ai_generated": false,
+  "ai_persona_role": "none",
+  "audio_source": null,
+  "audio_license_id": null,
+  "third_party_footage": false,
+  "footage_license_id": null,
+  "public_road_driving": false,
+  "competitor_named": false,
+  "on_video_disclosure_start": null,
+  "on_video_disclosure_end": null,
+  "render": {
+    "spec": "carousel.json",
+    "out_dir": "out/",
+    "files": [
+      "out/ega-2026-10-07-sauna-myth-check_01.jpg",
+      "out/ega-2026-10-07-sauna-myth-check_02.jpg",
+      "out/ega-2026-10-07-sauna-myth-check_03.jpg",
+      "out/ega-2026-10-07-sauna-myth-check_04.jpg",
+      "out/ega-2026-10-07-sauna-myth-check_05.jpg",
+      "out/ega-2026-10-07-sauna-myth-check_06.jpg",
+      "out/ega-2026-10-07-sauna-myth-check_07.jpg",
+      "out/ega-2026-10-07-sauna-myth-check_08.jpg"
+    ],
+    "contact_sheet": "out/ega-2026-10-07-sauna-myth-check_sheet.png",
+    "warnings": [
+      "handle is empty — set \"handle\" in the spec (brand pack lists the real handle)"
+    ]
+  },
+  "compliance": {
+    "verdict": "PASS",
+    "checker": "tools/compliance/check.py (rules 2026-10-04)",
+    "checked_on": "2026-10-04",
+    "hits": []
+  },
+  "flags": []
+}

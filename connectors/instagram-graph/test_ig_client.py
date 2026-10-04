@@ -260,6 +260,8 @@ class PublishTest(unittest.TestCase):
         self.assertIn("Facebook Login", str(ctx.exception))
         with self.assertRaises(IGError):
             c.create_reel("ega", "[광고] x", video_url="https://a/v.mp4", is_paid_partnership=True)
+        with self.assertRaises(IGError):
+            c.create_reel("ega", "x", video_url="https://a/v.mp4", collaborators=["someone"])
         self.assertEqual(api.calls, [])
 
     def test_reel_needs_exactly_one_source(self):
@@ -336,6 +338,7 @@ class PublishTest(unittest.TestCase):
     def test_publish_when_enabled_and_finished(self):
         c, api = make_client({
             ("GET", "/703"): {"id": "703", "status_code": "FINISHED"},
+            ("GET", "/1789/content_publishing_limit"): {"data": [{"quota_usage": 3, "config": {"quota_total": 100}}]},
             ("POST", "/1789/media_publish"): {"id": "799"},
             ("GET", "/799"): {"permalink": "https://instagram.com/p/x", "timestamp": "t"},
         }, publish=True)
@@ -350,6 +353,7 @@ class PublishTest(unittest.TestCase):
             raise IGError("An unexpected error has occurred", code=2)
         c, _ = make_client({
             ("GET", "/704"): {"id": "704", "status_code": "FINISHED"},
+            ("GET", "/1789/content_publishing_limit"): {"data": [{"quota_usage": 3, "config": {"quota_total": 100}}]},
             ("POST", "/1789/media_publish"): {"id": "798"},
             ("GET", "/798"): flaky,
         }, publish=True)
@@ -357,6 +361,16 @@ class PublishTest(unittest.TestCase):
         self.assertTrue(res["published"])
         self.assertEqual(res["media_id"], "798")
         self.assertIn("permalink_error", res)
+
+    def test_publish_stops_at_quota(self):
+        c, api = make_client({
+            ("GET", "/706"): {"id": "706", "status_code": "FINISHED"},
+            ("GET", "/1789/content_publishing_limit"): {"data": [{"quota_usage": 50, "config": {"quota_total": 50}}]},
+        }, publish=True)
+        with self.assertRaises(IGError) as ctx:
+            c.publish("ega", "706")
+        self.assertIn("quota", str(ctx.exception))
+        self.assertFalse(any(x["url"].endswith("media_publish") for x in api.calls))
 
     def test_wait_until_ready_polls(self):
         states = iter(["IN_PROGRESS", "IN_PROGRESS", "FINISHED"])

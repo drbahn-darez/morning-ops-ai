@@ -20,7 +20,7 @@
 | `ig_create_reel_container` | 업로드(비공개) | 릴스 컨테이너. 로컬 파일 업로드, Trial Reels, AI 표시, 유료 파트너십 |
 | `ig_create_carousel_container` | 업로드(비공개) | 캐러셀 2~10장 (JPEG 공개 URL) |
 | `ig_container_status` | 읽기 | 처리 상태 (wait=true면 1분 간격 최대 5분) |
-| `ig_publish` | **공개 게시** | 이중 게이트: `IG_PUBLISH_ENABLED=1` + Claude Code 권한 확인(ask) |
+| `ig_publish` | **공개 게시** | 이중 게이트: `IG_PUBLISH_ENABLED=1` + Claude Code 권한 확인(ask). 게시 직전 24h 쿼터를 실제로 읽어 초과 시 중단 |
 | `ig_refresh_token` | 토큰 | Instagram 로그인 토큰 60일 연장 |
 
 ## 설정 (대표님/담당자)
@@ -33,6 +33,7 @@
 | 필요 조건 | 인스타 프로페셔널 계정이 Facebook 페이지에 연결 | 프로페셔널 계정만 |
 | 경쟁 계정(Business Discovery) | ✅ | ❌ |
 | 유료 파트너십 라벨(API) | ✅ | ❌ |
+| 콜라보레이터(API) | ✅ | ❌ (overview 문서상 Facebook Login 전용) |
 | 해시태그 검색 | ✅ (Instagram Public Content Access 기능 필요) | ❌ |
 | 로컬 파일 업로드(resumable) | ✅ | ❌ (Meta 문서상 Facebook Login 전용 — 공개 video_url 필요) |
 | 토큰 수명 | 시스템 사용자 토큰은 만료 없음 가능 | 60일, 갱신 필요 |

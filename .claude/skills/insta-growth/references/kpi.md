@@ -10,7 +10,7 @@
 | 지표 | 정의 | API 소스 | 방향 |
 |---|---|---|---|
 | 발행 수 | 정식 릴스 + Trial 수 | content-log | 월 20+ |
-| 스킵률 | 첫 3초 안에 넘긴 **시청자** 비율 (조회수 아님) | `reels_skip_rate` | ↓ |
+| 스킵률 | 첫 3초 안에 넘긴 비율. Meta 정의는 **조회 기준**(추정치·개발 중), Supermetrics는 시청자 기준으로 설명 — 소스를 섞어 비교하지 않는다. 조회가 적으면 빈 값 | `reels_skip_rate` | ↓ |
 | 평균 시청 시간 | 초 단위, 영상 길이 대비 % | `ig_reels_avg_watch_time` (ms) | ↑ |
 | 공유/도달 | sends per reach (DM 공유) | `shares` / `reach` | ↑ 비팔로워 확산 핵심 |
 | 좋아요/도달 | | `likes` / `reach` | ↑ 팔로워 노출 핵심 |

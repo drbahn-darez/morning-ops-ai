@@ -1,0 +1,16 @@
+{
+  "id": "2026-10-08-m4-bumper-creases-cover",
+  "brand": "adro",
+  "size": "9:16",
+  "handle": "@adro.inc",
+  "footer": "AERO PROOF",
+  "_todo": "Add \"image\": \"<local path to chosen G8X vertical still>\" to the slide and re-render (brief.md TODO 6). Text-only until then.",
+  "slides": [
+    {
+      "layout": "cover",
+      "eyebrow": "BMW M4 G82 · FRONT BUMPER",
+      "title": "Every crease\nhas **a job.**",
+      "sub": "Here are 3."
+    }
+  ]
+}
