@@ -15,9 +15,10 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+import anyio  # noqa: E402
 from mcp.server.fastmcp import FastMCP  # noqa: E402
 
-from ig_client import IGClient, IGError, mask  # noqa: E402
+from ig_client import IGClient, IGError, mask, redact, scrub  # noqa: E402
 
 mcp = FastMCP("instagram-graph")
 _client: IGClient | None = None
@@ -31,10 +32,13 @@ def client() -> IGClient:
 
 
 def _run(fn, *args, **kwargs) -> str:
+    """Call the client and return JSON. Outputs are scrubbed: no paging URLs, no tokens."""
     try:
-        return json.dumps(fn(*args, **kwargs), ensure_ascii=False, indent=1)
+        return json.dumps(scrub(fn(*args, **kwargs)), ensure_ascii=False, indent=1)
     except IGError as e:
-        return json.dumps({"error": str(e), "code": e.code, "subcode": e.subcode}, ensure_ascii=False)
+        return json.dumps({"error": redact(str(e)), "code": e.code, "subcode": e.subcode}, ensure_ascii=False)
+    except Exception as e:  # never let an unexpected error echo a URL with the token
+        return json.dumps({"error": f"{type(e).__name__}: {redact(str(e))}"}, ensure_ascii=False)
 
 
 @mcp.tool()
@@ -128,11 +132,13 @@ def ig_create_carousel_container(brand: str, caption: str, items: list[dict],
 
 
 @mcp.tool()
-def ig_container_status(brand: str, container_id: str, wait: bool = False) -> str:
+async def ig_container_status(brand: str, container_id: str, wait: bool = False) -> str:
     """Processing status of a container: IN_PROGRESS, FINISHED, ERROR, EXPIRED or PUBLISHED. wait=true polls once a minute
     for up to 5 minutes (Meta guidance)."""
     c = client()
-    return _run(c.wait_until_ready if wait else c.container_status, brand, container_id)
+    fn = c.wait_until_ready if wait else c.container_status
+    # Run in a worker thread so a 5-minute wait does not block other tool calls.
+    return await anyio.to_thread.run_sync(lambda: _run(fn, brand, container_id))
 
 
 @mcp.tool()
@@ -149,12 +155,13 @@ def ig_publish(brand: str, container_id: str, human_approval: str) -> str:
 def ig_refresh_token(brand: str, reveal: bool = False) -> str:
     """Refresh a long-lived Instagram Login token (valid 60 days; refresh after it is 24h old). The new token must be
     saved to IG_<BRAND>_TOKEN by the user. reveal=false returns it masked."""
-    def go():
+    try:
         res = client().refresh_token(brand)
-        if not reveal and "access_token" in res:
-            res = {**res, "access_token": mask(res["access_token"])}
-        return res
-    return _run(go)
+    except IGError as e:
+        return json.dumps({"error": redact(str(e)), "code": e.code}, ensure_ascii=False)
+    if not reveal and "access_token" in res:
+        res = {**res, "access_token": mask(res["access_token"])}
+    return json.dumps(res, ensure_ascii=False, indent=1)
 
 
 if __name__ == "__main__":

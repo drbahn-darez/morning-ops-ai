@@ -23,9 +23,11 @@ Global:
 from __future__ import annotations
 
 import datetime as dt
+import http.client
 import json
 import os
 import re
+import statistics
 import time
 import urllib.error
 import urllib.parse
@@ -95,6 +97,26 @@ CAROUSEL_MIN, CAROUSEL_MAX = 2, 10  # API limit; the app allows 20
 
 Transport = Callable[[str, str, dict | None, bytes | None, dict | None], dict]
 
+ID_RE = re.compile(r"\d{1,30}")
+TOKEN_RE = re.compile(r"(access_token=|OAuth |Bearer )[^&\s'\"]+")
+AUTH_CODES = {10, 102, 190, 200}  # permission / expired-token errors: never hide these
+
+
+def redact(text: str) -> str:
+    """Remove access tokens from any text that may reach the model."""
+    return TOKEN_RE.sub(r"\1***", text)
+
+
+def scrub(obj: Any) -> Any:
+    """Drop paging blocks (their URLs embed the token) and redact tokens in API payloads."""
+    if isinstance(obj, dict):
+        return {k: scrub(v) for k, v in obj.items() if k not in ("paging", "access_token")}
+    if isinstance(obj, list):
+        return [scrub(v) for v in obj]
+    if isinstance(obj, str):
+        return redact(obj)
+    return obj
+
 
 class IGError(Exception):
     """API or configuration error with a message safe to show to the user."""
@@ -115,6 +137,14 @@ class Account:
     @property
     def base(self) -> str:
         return HOSTS[self.host]
+
+
+def _id(value: Any, what: str = "id") -> str:
+    """Media and container ids are numeric; reject anything else so it cannot rewrite the request path."""
+    s = str(value).strip()
+    if not ID_RE.fullmatch(s):
+        raise IGError(f"{what} must be a numeric Instagram id, got {value!r}")
+    return s
 
 
 def mask(token: str) -> str:
@@ -159,11 +189,16 @@ def urllib_transport(method: str, url: str, params: dict | None, body: bytes | N
         ) from None
     except urllib.error.URLError as e:
         raise IGError(
-            f"Network error reaching {urllib.parse.urlsplit(url).netloc}: {e.reason}. "
+            f"Network error reaching {urllib.parse.urlsplit(url).netloc}: {redact(str(e.reason))}. "
             "In a cloud session, allow graph.instagram.com, graph.facebook.com and "
             "rupload.facebook.com in the environment's network settings."
         ) from None
-    return json.loads(raw or b"{}")
+    except (http.client.HTTPException, ValueError, OSError) as e:
+        raise IGError(f"Request to {urllib.parse.urlsplit(url).netloc} failed: {redact(str(e))}") from None
+    try:
+        return json.loads(raw or b"{}")
+    except json.JSONDecodeError:
+        raise IGError(f"Non-JSON response from {urllib.parse.urlsplit(url).netloc}") from None
 
 
 def validate_caption(caption: str) -> None:
@@ -224,6 +259,17 @@ def _flatten_insights(payload: dict) -> dict[str, Any]:
                 {"end_time": v.get("end_time"), "value": v.get("value")} for v in vals
             ]
     return values
+
+
+def _is_metric_error(e: IGError) -> bool:
+    return e.code == 100 and e.subcode != 33 and "metric" in str(e).lower()
+
+
+def _check_lists(collaborators: list[str] | None, sponsors: list[str] | None) -> None:
+    if collaborators and len(collaborators) > 3:
+        raise IGError(f"{len(collaborators)} collaborators given; the API allows 3.")
+    if sponsors and len(sponsors) > 2:
+        raise IGError(f"{len(sponsors)} branded_content_sponsor_ids given; the limit is 2.")
 
 
 class IGClient:
@@ -316,6 +362,7 @@ class IGClient:
     def media_insights(self, brand: str, media_id: str, metrics: list[str] | None = None,
                        media_product_type: str | None = None) -> dict:
         acct = self.account(brand)
+        media_id = _id(media_id, "media_id")
         if metrics is None:
             metrics = REEL_METRICS if (media_product_type or "").upper() == "REELS" else FEED_METRICS
         try:
@@ -324,16 +371,20 @@ class IGClient:
             skipped: list[str] = []
         except IGError as e:
             # One unsupported metric fails the whole request; retry one by one and skip the bad ones.
-            if e.code != 100 or len(metrics) == 1:
+            # Only for metric errors — code 100 is also used for missing objects (subcode 33).
+            if not _is_metric_error(e) or len(metrics) == 1:
                 raise
-            values, skipped = {}, []
+            values, skipped, last = {}, [], e
             for m in metrics:
                 try:
                     values.update(_flatten_insights(self._call(acct, "GET", f"{media_id}/insights", {"metric": m})))
                 except IGError as inner:
-                    if inner.code != 100:
+                    if not _is_metric_error(inner):
                         raise
                     skipped.append(m)
+                    last = inner
+            if not values:
+                raise IGError(f"No insights available for media {media_id}: {last}", last.code, last.subcode)
         result = {"media_id": media_id, "metrics": values, "derived": derive(values)}
         if skipped:
             result["unsupported_metrics"] = skipped
@@ -365,6 +416,8 @@ class IGClient:
             try:
                 ins = self.media_insights(brand, m["id"], media_product_type=m.get("media_product_type"))
             except IGError as e:
+                if e.code in AUTH_CODES:
+                    raise
                 ins = {"metrics": {}, "derived": {}, "error": str(e)}
             rows.append({
                 "id": m["id"],
@@ -377,13 +430,27 @@ class IGClient:
                 **({"error": ins["error"]} if "error" in ins else {}),
             })
         rows.sort(key=lambda r: r.get("views") or 0, reverse=True)
-        views = [r["views"] for r in rows if isinstance(r.get("views"), (int, float))]
+        errors = [r for r in rows if "error" in r]
+        if rows and len(errors) == len(rows):
+            raise IGError(f"Insights failed for all {len(rows)} posts: {errors[0]['error']}")
+
+        def nums(rs):
+            return [r["views"] for r in rs if isinstance(r.get("views"), (int, float))]
+
+        views = nums(rows)
+        reel_views = nums(r for r in rows if r.get("type") == "REELS")
         summary = {
             "posts": len(rows),
+            "reels": len([r for r in rows if r.get("type") == "REELS"]),
             "hits_100k": sum(1 for v in views if v >= VIEWS_TARGET),
             "max_views": max(views) if views else None,
-            "median_views": sorted(views)[len(views) // 2] if views else None,
+            # Kill/Scale baseline = median of Reels only (playbook.md §4)
+            "median_reel_views": statistics.median(reel_views) if reel_views else None,
+            "median_views_all": statistics.median(views) if views else None,
+            "errors": len(errors),
         }
+        if errors:
+            summary["first_error"] = errors[0]["error"]
         return {"brand": brand, "summary": summary, "posts": rows}
 
     def competitor(self, brand: str, username: str, media_limit: int = 12) -> dict:
@@ -455,8 +522,9 @@ class IGClient:
             params["cover_url"] = cover_url
         if thumb_offset_ms is not None:
             params["thumb_offset"] = int(thumb_offset_ms)
+        _check_lists(collaborators, branded_content_sponsor_ids)
         if collaborators:
-            params["collaborators"] = json.dumps(collaborators[:3])
+            params["collaborators"] = json.dumps(collaborators)
         if audio_name:
             params["audio_name"] = audio_name
         if trial_graduation:
@@ -468,7 +536,7 @@ class IGClient:
         if is_paid_partnership:
             params["is_paid_partnership"] = "true"
         if branded_content_sponsor_ids:
-            params["branded_content_sponsor_ids"] = json.dumps(branded_content_sponsor_ids[:2])
+            params["branded_content_sponsor_ids"] = json.dumps(branded_content_sponsor_ids)
         if location_id:
             params["location_id"] = location_id
         created = self._call(acct, "POST", f"{acct.user_id}/media", params)
@@ -493,7 +561,8 @@ class IGClient:
         if not CAROUSEL_MIN <= len(items) <= CAROUSEL_MAX:
             raise IGError(f"An API carousel needs {CAROUSEL_MIN} to {CAROUSEL_MAX} items (the app allows 20).")
         validate_caption(caption)
-        children = []
+        _check_lists(collaborators, branded_content_sponsor_ids)
+        children, video_children = [], []
         for i, item in enumerate(items):
             params: dict[str, Any] = {"is_carousel_item": "true"}
             if item.get("image_url"):
@@ -501,21 +570,32 @@ class IGClient:
                     raise IGError(f"Item {i}: the API accepts JPEG images only (sRGB, max 8 MB). Render with format jpg.")
                 params["image_url"] = item["image_url"]
                 if item.get("alt_text"):
-                    params["alt_text"] = item["alt_text"][:1000]
+                    if len(item["alt_text"]) > 1000:
+                        raise IGError(f"Item {i}: alt_text is {len(item['alt_text'])} chars; the limit is 1,000.")
+                    params["alt_text"] = item["alt_text"]
             elif item.get("video_url"):
                 params.update(media_type="VIDEO", video_url=item["video_url"])
             else:
                 raise IGError(f"Item {i} needs image_url or video_url (public URLs).")
-            children.append(self._call(acct, "POST", f"{acct.user_id}/media", params)["id"])
+            cid = self._call(acct, "POST", f"{acct.user_id}/media", params)["id"]
+            children.append(cid)
+            if "video_url" in params:
+                video_children.append(cid)
+        # Video items must finish processing before the parent carousel container is created.
+        for cid in video_children:
+            st = self.wait_until_ready(brand, cid)
+            if st.get("status_code") != "FINISHED":
+                raise IGError(f"Carousel video item {cid} is {st.get('status_code')} ({st.get('status')}); "
+                              f"children created so far: {','.join(children)}. Parent not created.")
         params = {"media_type": "CAROUSEL", "children": ",".join(children), "caption": caption}
         if collaborators:
-            params["collaborators"] = json.dumps(collaborators[:3])
+            params["collaborators"] = json.dumps(collaborators)
         if is_ai_generated:
             params["is_ai_generated"] = "true"
         if is_paid_partnership:
             params["is_paid_partnership"] = "true"
         if branded_content_sponsor_ids:
-            params["branded_content_sponsor_ids"] = json.dumps(branded_content_sponsor_ids[:2])
+            params["branded_content_sponsor_ids"] = json.dumps(branded_content_sponsor_ids)
         if location_id:
             params["location_id"] = location_id
         parent = self._call(acct, "POST", f"{acct.user_id}/media", params)
@@ -524,7 +604,8 @@ class IGClient:
 
     def container_status(self, brand: str, container_id: str) -> dict:
         acct = self.account(brand)
-        return self._call(acct, "GET", container_id, {"fields": "id,status_code,status"})
+        res = self._call(acct, "GET", _id(container_id, "container_id"), {"fields": "id,status_code,status"})
+        return {k: res.get(k) for k in ("id", "status_code", "status")}
 
     def wait_until_ready(self, brand: str, container_id: str, timeout_s: int = 300, every_s: int = 60) -> dict:
         # Meta guidance: poll once per minute for no more than 5 minutes. Containers expire after 24h.
@@ -545,10 +626,17 @@ class IGClient:
         st = self.container_status(brand, container_id)
         if st.get("status_code") != "FINISHED":
             raise IGError(f"Container {container_id} is {st.get('status_code')}: {st.get('status')}. Not publishing.")
-        res = self._call(acct, "POST", f"{acct.user_id}/media_publish", {"creation_id": container_id})
+        res = self._call(acct, "POST", f"{acct.user_id}/media_publish", {"creation_id": _id(container_id, "container_id")})
         media_id = res.get("id")
-        link = self._call(acct, "GET", media_id, {"fields": "permalink,timestamp"}) if media_id else {}
-        return {"published": True, "media_id": media_id, **link}
+        out = {"published": True, "media_id": media_id}
+        # The post is live now; a failed permalink lookup must not look like a failed publish.
+        try:
+            if media_id:
+                link = self._call(acct, "GET", _id(media_id, "media_id"), {"fields": "permalink,timestamp"})
+                out.update({k: link.get(k) for k in ("permalink", "timestamp")})
+        except IGError as e:
+            out["permalink_error"] = str(e)
+        return out
 
     def refresh_token(self, brand: str) -> dict:
         acct = self.account(brand)
